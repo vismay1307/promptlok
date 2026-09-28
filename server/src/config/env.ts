@@ -11,6 +11,10 @@ const envSchema = z.object({
   DATABASE_URL: z
     .string()
     .min(1, "DATABASE_URL is required"),
+  
+  CLERK_SECRET_KEY: z
+    .string()
+    .min(1, "CLERK_SECRET_KEY is required"),
 
   CLIENT_URL: z.url(),
 });
