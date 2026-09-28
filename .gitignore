@@ -35,3 +35,13 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+# Drizzle ORM migrations & metadata ignore rules
+
+# 1. SQL migration files (.sql)
+server/drizzle/*.sql
+
+# 2. Journal metadata file (_journal.json)
+server/drizzle/meta/_journal.json
+
+# 3. Snapshot metadata file (.json)
+server/drizzle/meta/*_snapshot.json
