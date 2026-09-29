@@ -1,22 +1,13 @@
 import { Router } from "express";
-import { getAuth } from "@clerk/express";
+import { requireAuth } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.get("/test", (req, res) => {
-  const { isAuthenticated, userId } = getAuth(req);
-
-  if (!isAuthenticated) {
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized",
-    });
-  }
-
+router.get("/test", requireAuth, (req, res) => {
   return res.status(200).json({
     success: true,
-    message: "Backend authentication successful",
-    userId,
+    message: "Authenticated successfully",
+    clerkUserId: req.auth?.clerkUserId,
   });
 });
 
