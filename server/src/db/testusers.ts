@@ -1,5 +1,5 @@
 import { db } from "./db.js";
-import { users } from "./schema/users.js";
+import { users } from "./schema/users.schema.js";
 
 const testUsersTable = async () => {
   try {

@@ -36,6 +36,7 @@ export const getCurrentUser = async (
         bio: user.bio,
         avatar: user.avatar,
         accountStatus: user.accountStatus,
+        role: user.role,
       },
     });
   } catch (error) {

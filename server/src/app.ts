@@ -6,7 +6,7 @@ import { clerkMiddleware } from "@clerk/express";
 import { env } from "./config/env.js";
 
 import authRouter from "./routes/auth.routes.js";
-
+import authTestRouter from "./routes/auth-test.routes.js";
 
 const app = express();
 
@@ -30,6 +30,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRouter);
+app.use("/api/auth-test", authTestRouter);
 
 
 

@@ -38,6 +38,11 @@ export const users = pgTable(
     })
       .notNull()
       .default("active"),
+    role: varchar("role", {
+  length: 20,
+})
+  .notNull()
+  .default("user"),
 
     createdAt: timestamp("created_at", {
       withTimezone: true,
@@ -65,5 +70,6 @@ export const users = pgTable(
     accountStatusIdx: index("users_account_status_idx").on(
       table.accountStatus
     ),
+    
   })
 );
