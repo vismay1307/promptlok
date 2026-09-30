@@ -4,7 +4,12 @@ import type {
   NextFunction,
 } from "express";
 
-import { ZodError, type ZodSchema } from "zod";
+import {
+  ZodError,
+  type ZodSchema,
+} from "zod";
+
+import { ApiError } from "../utils/ApiError.js";
 
 type ValidationSchemas = {
   body?: ZodSchema;
@@ -17,7 +22,7 @@ export const validate = (
 ) => {
   return (
     req: Request,
-    res: Response,
+    _res: Response,
     next: NextFunction
   ) => {
     try {
@@ -36,14 +41,14 @@ export const validate = (
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: "BAD_REQUEST",
-            message: "Validation failed",
-            details: error.flatten().fieldErrors,
-          },
-        });
+        return next(
+          new ApiError(
+            400,
+            "BAD_REQUEST",
+            "Validation failed",
+            error.flatten().fieldErrors
+          )
+        );
       }
 
       next(error);

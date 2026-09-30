@@ -12,32 +12,47 @@ import type {
   UserRole,
 } from "../types/authorization.js";
 
+import { ApiError } from "../utils/ApiError.js";
+
 export const requireRole = (
   ...allowedRoles: UserRole[]
 ) => {
   return async (
     req: Request,
-    res: Response,
+    _res: Response,
     next: NextFunction
   ) => {
     try {
-      const clerkUserId = req.auth?.clerkUserId;
+      const clerkUserId =
+        req.auth?.clerkUserId;
 
       if (!clerkUserId) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized",
-        });
+        return next(
+          new ApiError(
+            401,
+            "UNAUTHORIZED",
+            "Unauthorized"
+          )
+        );
       }
 
       const user =
-        await findOrCreateLocalUser(clerkUserId);
+        await findOrCreateLocalUser(
+          clerkUserId
+        );
 
-      if (!allowedRoles.includes(user.role as UserRole)) {
-        return res.status(403).json({
-          success: false,
-          message: "Forbidden",
-        });
+      if (
+        !allowedRoles.includes(
+          user.role as UserRole
+        )
+      ) {
+        return next(
+          new ApiError(
+            403,
+            "FORBIDDEN",
+            "Forbidden"
+          )
+        );
       }
 
       next();

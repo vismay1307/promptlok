@@ -1,18 +1,29 @@
-import type { Request, Response, NextFunction } from "express";
+import type {
+  Request,
+  Response,
+  NextFunction,
+} from "express";
+
 import { getAuth } from "@clerk/express";
+
+import { ApiError } from "../utils/ApiError.js";
 
 export const requireAuth = (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) => {
-  const { isAuthenticated, userId } = getAuth(req);
+  const { isAuthenticated, userId } =
+    getAuth(req);
 
   if (!isAuthenticated || !userId) {
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized",
-    });
+    return next(
+      new ApiError(
+        401,
+        "UNAUTHORIZED",
+        "Unauthorized"
+      )
+    );
   }
 
   req.auth = {
