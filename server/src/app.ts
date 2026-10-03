@@ -8,6 +8,11 @@ import { env } from "./config/env.js";
 import authRouter from "./routes/auth.routes.js";
 import authTestRouter from "./routes/auth-test.routes.js";
 import { errorHandler } from "./middleware/error.middleware.js";
+import categoryRoutes from "./routes/category.routes.js";
+
+
+
+
 const app = express();
 
 app.use(
@@ -28,7 +33,7 @@ app.get("/health", (_req, res) => {
     message: "Server is healthy",
   });
 });
-
+app.use("/api/categories", categoryRoutes);
 app.use("/api/auth", authRouter);
 
 app.use("/api/auth-test", authTestRouter);
