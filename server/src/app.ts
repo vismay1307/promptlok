@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import { clerkMiddleware } from "@clerk/express";
 
 import { env } from "./config/env.js";
-
+import tagRoutes from "./routes/tag.routes.js";
 import authRouter from "./routes/auth.routes.js";
 import authTestRouter from "./routes/auth-test.routes.js";
 import { errorHandler } from "./middleware/error.middleware.js";
@@ -34,6 +34,7 @@ app.get("/health", (_req, res) => {
   });
 });
 app.use("/api/categories", categoryRoutes);
+app.use("/api/tags", tagRoutes);
 app.use("/api/auth", authRouter);
 
 app.use("/api/auth-test", authTestRouter);
