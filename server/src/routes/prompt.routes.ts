@@ -1,12 +1,11 @@
 import { Router } from "express";
 
+import { PromptController } from "../controllers/prompt.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
-
 import { createPromptSchema } from "../validators/prompt.validators.js";
-import { PromptController } from "../controllers/prompt.controller.js";
 
-export const promptRouter = Router();
+const promptRouter = Router();
 
 promptRouter.post(
   "/",
@@ -16,3 +15,5 @@ promptRouter.post(
   }),
   PromptController.create,
 );
+
+export default promptRouter;
