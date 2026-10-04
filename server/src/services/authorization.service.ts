@@ -12,38 +12,39 @@ export class AuthorizationService {
   ) {}
 
   async canView(
-    user: AuthorizationUser,
-    promptId: string,
-  ): Promise<boolean> {
-    const prompt = await this.promptRepository.findById(promptId);
+  user: AuthorizationUser,
+  promptId: string,
+): Promise<boolean> {
+  const prompt = await this.promptRepository.findById(promptId);
 
-    if (!prompt || prompt.deletedAt) {
-      return false;
-    }
-
-    // Public prompts are viewable by everyone
-    if (prompt.visibility === "public") {
-      return true;
-    }
-
-    // Anonymous users cannot view non-public prompts
-    if (!user) {
-      return false;
-    }
-
-    // Inactive users cannot access protected resources
-    if (user.accountStatus !== "active") {
-      return false;
-    }
-
-    // Owner can view their own prompt
-    if (prompt.authorId === user.id) {
-      return true;
-    }
-
-    // shared/team/organization are fail-closed for now
+  // Missing prompt or soft-deleted prompt = not viewable
+  if (!prompt || prompt.deletedAt) {
     return false;
   }
+
+  // Public prompts are viewable by everyone
+  if (prompt.visibility === "public") {
+    return true;
+  }
+
+  // Non-public prompts require an authenticated user
+  if (!user) {
+    return false;
+  }
+
+  // Inactive users cannot access protected prompts
+  if (user.accountStatus !== "active") {
+    return false;
+  }
+
+  // Owner can view their own prompt
+  if (prompt.authorId === user.id) {
+    return true;
+  }
+
+  // shared/team/organization are fail-closed for now
+  return false;
+}
 
   async assertCanView(
     user: AuthorizationUser,

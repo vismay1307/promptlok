@@ -1,12 +1,16 @@
 import { eq } from "drizzle-orm";
-
 import { db } from "../db/db.js";
 import { prompts } from "../db/schema/prompts.schema.js";
 
-type DbExecutor = typeof db;
+type DbExecutor = Pick<
+  typeof db,
+  "select" | "insert" | "update" | "delete"
+>;
 
 export class PromptRepository {
-  constructor(private readonly database: DbExecutor = db) {}
+  constructor(
+    private readonly database: DbExecutor = db,
+  ) {}
 
   async findById(promptId: string) {
     const result = await this.database

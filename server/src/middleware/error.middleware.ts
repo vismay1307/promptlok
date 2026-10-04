@@ -5,22 +5,22 @@ import type {
 } from "express";
 
 import { ZodError } from "zod";
-
 import { ApiError } from "../utils/ApiError.js";
+import { mapDatabaseError } from "../utils/dbErrors.js";
 
-export const errorHandler = (
+export function errorHandler(
   error: unknown,
   _req: Request,
   res: Response,
-  _next: NextFunction
-) => {
+  _next: NextFunction,
+) {
   if (error instanceof ZodError) {
     return res.status(400).json({
       success: false,
       error: {
-        code: "BAD_REQUEST",
+        code: "VALIDATION_ERROR",
         message: "Validation failed",
-        details: error.flatten().fieldErrors,
+        details: error.flatten(),
       },
     });
   }
@@ -31,14 +31,39 @@ export const errorHandler = (
       error: {
         code: error.code,
         message: error.message,
-        ...(error.details !== undefined && {
-          details: error.details,
-        }),
+        ...(error.details !== undefined
+          ? { details: error.details }
+          : {}),
       },
     });
   }
 
-  console.error("Unhandled error:", error);
+  try {
+    mapDatabaseError(error);
+  } catch (mappedError) {
+    if (mappedError instanceof ApiError) {
+      return res.status(mappedError.statusCode).json({
+        success: false,
+        error: {
+          code: mappedError.code,
+          message: mappedError.message,
+          ...(mappedError.details !== undefined
+            ? { details: mappedError.details }
+            : {}),
+        },
+      });
+    }
+
+    console.error(mappedError);
+
+    return res.status(500).json({
+      success: false,
+      error: {
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Internal server error",
+      },
+    });
+  }
 
   return res.status(500).json({
     success: false,
@@ -47,4 +72,4 @@ export const errorHandler = (
       message: "Internal server error",
     },
   });
-};
+}

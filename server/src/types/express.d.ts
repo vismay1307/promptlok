@@ -1,9 +1,9 @@
-import type { AuthContext } from "./auth.js";
+import type { users } from "../db/schema/users.schema.js";
 
 declare global {
   namespace Express {
     interface Request {
-      auth?: AuthContext;
+      user: typeof users.$inferSelect | null;
     }
   }
 }

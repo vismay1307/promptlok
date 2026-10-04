@@ -1,9 +1,11 @@
 import { and, eq } from "drizzle-orm";
-
 import { db } from "../db/db.js";
 import { promptTags } from "../db/schema/prompt-tags.js";
 
-type DbExecutor = typeof db;
+type DbExecutor = Pick<
+  typeof db,
+  "select" | "insert" | "delete"
+>;
 
 export class PromptTagRepository {
   constructor(private readonly database: DbExecutor = db) {}

@@ -1,10 +1,11 @@
-import { and, eq } from "drizzle-orm";
-
+import { eq } from "drizzle-orm";
 import { db } from "../db/db.js";
 import { promptVersions } from "../db/schema/prompt-versions.js";
 
-type DbExecutor = typeof db;
-
+type DbExecutor = Pick<
+  typeof db,
+  "select" | "insert"
+>;
 export class PromptVersionRepository {
   constructor(private readonly database: DbExecutor = db) {}
 
