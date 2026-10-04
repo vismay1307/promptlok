@@ -1,4 +1,10 @@
-import { eq } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  isNull,
+} from "drizzle-orm";
+
 import { db } from "../db/db.js";
 import { prompts } from "../db/schema/prompts.schema.js";
 
@@ -6,6 +12,16 @@ type DbExecutor = Pick<
   typeof db,
   "select" | "insert" | "update" | "delete"
 >;
+
+type FindMineOptions = {
+  limit: number;
+  offset: number;
+  categoryId?: string;
+  lifecycleStatus?:
+    | "draft"
+    | "active"
+    | "archived";
+};
 
 export class PromptRepository {
   constructor(
@@ -22,7 +38,45 @@ export class PromptRepository {
     return result[0] ?? null;
   }
 
-  async create(data: typeof prompts.$inferInsert) {
+  async findMine(
+    authorId: string,
+    options: FindMineOptions,
+  ) {
+    const conditions = [
+      eq(prompts.authorId, authorId),
+      isNull(prompts.deletedAt),
+    ];
+
+    if (options.categoryId) {
+      conditions.push(
+        eq(prompts.categoryId, options.categoryId),
+      );
+    }
+
+    if (options.lifecycleStatus) {
+      conditions.push(
+        eq(
+          prompts.lifecycleStatus,
+          options.lifecycleStatus,
+        ),
+      );
+    }
+
+    return this.database
+      .select()
+      .from(prompts)
+      .where(and(...conditions))
+      .orderBy(
+        desc(prompts.createdAt),
+        desc(prompts.id),
+      )
+      .limit(options.limit)
+      .offset(options.offset);
+  }
+
+  async create(
+    data: typeof prompts.$inferInsert,
+  ) {
     const result = await this.database
       .insert(prompts)
       .values(data)
@@ -45,4 +99,5 @@ export class PromptRepository {
   }
 }
 
-export const promptRepository = new PromptRepository();
+export const promptRepository =
+  new PromptRepository();

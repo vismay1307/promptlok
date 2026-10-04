@@ -4,6 +4,10 @@ declare global {
   namespace Express {
     interface Request {
       user: typeof users.$inferSelect | null;
+
+      auth?: {
+        clerkUserId: string;
+      };
     }
   }
 }

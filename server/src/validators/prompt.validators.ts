@@ -30,14 +30,56 @@ export const createPromptSchema = z
       )
       .optional(),
 
-    promptType: z
-      .literal("text"),
+    promptType: z.literal("text"),
 
     aiModelMetadata: z
       .string()
-      .max(100, "AI model metadata must not exceed 100 characters")
+      .max(
+        100,
+        "AI model metadata must not exceed 100 characters",
+      )
       .optional(),
   })
   .strict();
 
-export type CreatePromptInput = z.infer<typeof createPromptSchema>;
+export type CreatePromptInput = z.infer<
+  typeof createPromptSchema
+>;
+
+export const promptIdParamSchema = z.object({
+  id: z.string().uuid("Invalid prompt ID"),
+});
+
+export type PromptIdParam = z.infer<
+  typeof promptIdParamSchema
+>;
+
+export const getMineQuerySchema = z
+  .object({
+    limit: z.coerce
+      .number()
+      .int("Limit must be an integer")
+      .min(1, "Limit must be at least 1")
+      .max(50, "Limit must not exceed 50")
+      .default(20),
+
+    offset: z.coerce
+      .number()
+      .int("Offset must be an integer")
+      .min(0, "Offset cannot be negative")
+      .default(0),
+
+    categoryId: z
+      .string()
+      .uuid("Category ID must be a valid UUID")
+      .optional(),
+
+    lifecycleStatus: z
+      .enum(["draft", "active", "archived"])
+      .optional(),
+  })
+  .strict();
+
+export type GetMineQuery = z.infer<
+  typeof getMineQuerySchema
+>;
