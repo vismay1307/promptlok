@@ -13,10 +13,6 @@ import {
 
 const promptRouter = Router();
 
-/**
- * POST /api/prompts
- * Create a new prompt
- */
 promptRouter.post(
   "/",
   requireAuth,
@@ -26,13 +22,6 @@ promptRouter.post(
   PromptController.create,
 );
 
-/**
- * GET /api/prompts/mine
- * Get current user's prompts
- *
- * IMPORTANT:
- * This route must come before /:id.
- */
 promptRouter.get(
   "/mine",
   requireAuth,
@@ -42,10 +31,6 @@ promptRouter.get(
   PromptController.getMine,
 );
 
-/**
- * PATCH /api/prompts/:id
- * Update prompt metadata
- */
 promptRouter.patch(
   "/:id",
   requireAuth,
@@ -56,10 +41,15 @@ promptRouter.patch(
   PromptController.update,
 );
 
-/**
- * GET /api/prompts/:id
- * Get a single prompt by ID
- */
+promptRouter.delete(
+  "/:id",
+  requireAuth,
+  validate({
+    params: promptIdParamSchema,
+  }),
+  PromptController.softDelete,
+);
+
 promptRouter.get(
   "/:id",
   requireAuth,

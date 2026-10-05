@@ -1,10 +1,4 @@
-import {
-  and,
-  desc,
-  eq,
-  isNull,
-} from "drizzle-orm";
-
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { db } from "../db/db.js";
 import { prompts } from "../db/schema/prompts.schema.js";
 
@@ -13,39 +7,14 @@ type DbExecutor = Pick<
   "select" | "insert" | "update" | "delete"
 >;
 
-type FindMineOptions = {
-  limit: number;
-  offset: number;
-  categoryId?: string;
-  lifecycleStatus?:
-    | "draft"
-    | "active"
-    | "archived";
-};
-
-type UpdatePromptMetadata = {
-  title?: string;
-  description?: string | null;
-  categoryId?: string;
-  aiModelMetadata?: string | null;
-  updatedAt: Date;
-};
-
 export class PromptRepository {
-  constructor(
-    private readonly database: DbExecutor = db,
-  ) {}
+  constructor(private readonly database: DbExecutor = db) {}
 
   async findById(promptId: string) {
     const result = await this.database
       .select()
       .from(prompts)
-      .where(
-        eq(
-          prompts.id,
-          promptId,
-        ),
-      )
+      .where(eq(prompts.id, promptId))
       .limit(1);
 
     return result[0] ?? null;
@@ -53,53 +22,36 @@ export class PromptRepository {
 
   async findMine(
     authorId: string,
-    options: FindMineOptions,
+    options: {
+      limit: number;
+      offset: number;
+      categoryId?: string;
+      lifecycleStatus?: "draft" | "active" | "archived";
+    },
   ) {
     const conditions = [
-      eq(
-        prompts.authorId,
-        authorId,
-      ),
-      isNull(
-        prompts.deletedAt,
-      ),
+      eq(prompts.authorId, authorId),
+      isNull(prompts.deletedAt),
     ];
 
     if (options.categoryId) {
-      conditions.push(
-        eq(
-          prompts.categoryId,
-          options.categoryId,
-        ),
-      );
+      conditions.push(eq(prompts.categoryId, options.categoryId));
     }
 
     if (options.lifecycleStatus) {
-      conditions.push(
-        eq(
-          prompts.lifecycleStatus,
-          options.lifecycleStatus,
-        ),
-      );
+      conditions.push(eq(prompts.lifecycleStatus, options.lifecycleStatus));
     }
 
     return this.database
       .select()
       .from(prompts)
-      .where(
-        and(...conditions),
-      )
-      .orderBy(
-        desc(prompts.createdAt),
-        desc(prompts.id),
-      )
+      .where(and(...conditions))
+      .orderBy(desc(prompts.createdAt), desc(prompts.id))
       .limit(options.limit)
       .offset(options.offset);
   }
 
-  async create(
-    data: typeof prompts.$inferInsert,
-  ) {
+  async create(data: typeof prompts.$inferInsert) {
     const result = await this.database
       .insert(prompts)
       .values(data)
@@ -110,19 +62,12 @@ export class PromptRepository {
 
   async update(
     promptId: string,
-    data: Partial<
-      typeof prompts.$inferInsert
-    >,
+    data: Partial<typeof prompts.$inferInsert>,
   ) {
     const result = await this.database
       .update(prompts)
       .set(data)
-      .where(
-        eq(
-          prompts.id,
-          promptId,
-        ),
-      )
+      .where(eq(prompts.id, promptId))
       .returning();
 
     return result[0] ?? null;
@@ -130,22 +75,35 @@ export class PromptRepository {
 
   async updateMetadata(
     promptId: string,
-    data: UpdatePromptMetadata,
+    data: {
+      title?: string;
+      description?: string | null;
+      categoryId?: string;
+      aiModelMetadata?: string | null;
+      updatedAt: Date;
+    },
   ) {
     const result = await this.database
       .update(prompts)
       .set(data)
-      .where(
-        eq(
-          prompts.id,
-          promptId,
-        ),
-      )
+      .where(eq(prompts.id, promptId))
+      .returning();
+
+    return result[0] ?? null;
+  }
+
+  async softDelete(promptId: string) {
+    const result = await this.database
+      .update(prompts)
+      .set({
+        deletedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(prompts.id, promptId))
       .returning();
 
     return result[0] ?? null;
   }
 }
 
-export const promptRepository =
-  new PromptRepository();
+export const promptRepository = new PromptRepository();

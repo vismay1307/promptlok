@@ -17,17 +17,14 @@ export class PromptController {
 
       if (!user) {
         return next(
-          new Error(
-            "Authenticated user not found",
-          ),
+          new Error("Authenticated user not found"),
         );
       }
 
-      const prompt =
-        await promptService.create(
-          user.id,
-          req.body,
-        );
+      const prompt = await promptService.create(
+        user.id,
+        req.body,
+      );
 
       return res.status(201).json({
         success: true,
@@ -48,21 +45,17 @@ export class PromptController {
 
       if (!user) {
         return next(
-          new Error(
-            "Authenticated user not found",
-          ),
+          new Error("Authenticated user not found"),
         );
       }
 
-      const prompt =
-        await promptService.getById(
-          {
-            id: user.id,
-            accountStatus:
-              user.accountStatus,
-          },
-          String(req.params.id),
-        );
+      const prompt = await promptService.getById(
+        {
+          id: user.id,
+          accountStatus: user.accountStatus,
+        },
+        String(req.params.id),
+      );
 
       return res.status(200).json({
         success: true,
@@ -83,17 +76,14 @@ export class PromptController {
 
       if (!user) {
         return next(
-          new Error(
-            "Authenticated user not found",
-          ),
+          new Error("Authenticated user not found"),
         );
       }
 
-      const prompts =
-        await promptService.getMine(
-          user.id,
-          req.query as any,
-        );
+      const prompts = await promptService.getMine(
+        user.id,
+        req.query as any,
+      );
 
       return res.status(200).json({
         success: true,
@@ -114,27 +104,51 @@ export class PromptController {
 
       if (!user) {
         return next(
-          new Error(
-            "Authenticated user not found",
-          ),
+          new Error("Authenticated user not found"),
         );
       }
 
-      const prompt =
-        await promptService.update(
-          {
-            id: user.id,
-            accountStatus:
-              user.accountStatus,
-          },
-          String(req.params.id),
-          req.body,
-        );
+      const prompt = await promptService.update(
+        {
+          id: user.id,
+          accountStatus: user.accountStatus,
+        },
+        String(req.params.id),
+        req.body,
+      );
 
       return res.status(200).json({
         success: true,
         data: prompt,
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async softDelete(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return next(
+          new Error("Authenticated user not found"),
+        );
+      }
+
+      await promptService.softDelete(
+        {
+          id: user.id,
+          accountStatus: user.accountStatus,
+        },
+        String(req.params.id),
+      );
+
+      return res.status(204).send();
     } catch (error) {
       next(error);
     }
