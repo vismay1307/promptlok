@@ -103,4 +103,40 @@ export class PromptController {
       next(error);
     }
   }
+
+  static async update(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return next(
+          new Error(
+            "Authenticated user not found",
+          ),
+        );
+      }
+
+      const prompt =
+        await promptService.update(
+          {
+            id: user.id,
+            accountStatus:
+              user.accountStatus,
+          },
+          String(req.params.id),
+          req.body,
+        );
+
+      return res.status(200).json({
+        success: true,
+        data: prompt,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

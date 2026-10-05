@@ -23,6 +23,14 @@ type FindMineOptions = {
     | "archived";
 };
 
+type UpdatePromptMetadata = {
+  title?: string;
+  description?: string | null;
+  categoryId?: string;
+  aiModelMetadata?: string | null;
+  updatedAt: Date;
+};
+
 export class PromptRepository {
   constructor(
     private readonly database: DbExecutor = db,
@@ -32,7 +40,12 @@ export class PromptRepository {
     const result = await this.database
       .select()
       .from(prompts)
-      .where(eq(prompts.id, promptId))
+      .where(
+        eq(
+          prompts.id,
+          promptId,
+        ),
+      )
       .limit(1);
 
     return result[0] ?? null;
@@ -43,13 +56,21 @@ export class PromptRepository {
     options: FindMineOptions,
   ) {
     const conditions = [
-      eq(prompts.authorId, authorId),
-      isNull(prompts.deletedAt),
+      eq(
+        prompts.authorId,
+        authorId,
+      ),
+      isNull(
+        prompts.deletedAt,
+      ),
     ];
 
     if (options.categoryId) {
       conditions.push(
-        eq(prompts.categoryId, options.categoryId),
+        eq(
+          prompts.categoryId,
+          options.categoryId,
+        ),
       );
     }
 
@@ -65,7 +86,9 @@ export class PromptRepository {
     return this.database
       .select()
       .from(prompts)
-      .where(and(...conditions))
+      .where(
+        and(...conditions),
+      )
       .orderBy(
         desc(prompts.createdAt),
         desc(prompts.id),
@@ -87,12 +110,37 @@ export class PromptRepository {
 
   async update(
     promptId: string,
-    data: Partial<typeof prompts.$inferInsert>,
+    data: Partial<
+      typeof prompts.$inferInsert
+    >,
   ) {
     const result = await this.database
       .update(prompts)
       .set(data)
-      .where(eq(prompts.id, promptId))
+      .where(
+        eq(
+          prompts.id,
+          promptId,
+        ),
+      )
+      .returning();
+
+    return result[0] ?? null;
+  }
+
+  async updateMetadata(
+    promptId: string,
+    data: UpdatePromptMetadata,
+  ) {
+    const result = await this.database
+      .update(prompts)
+      .set(data)
+      .where(
+        eq(
+          prompts.id,
+          promptId,
+        ),
+      )
       .returning();
 
     return result[0] ?? null;

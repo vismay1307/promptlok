@@ -8,6 +8,7 @@ import {
   createPromptSchema,
   getMineQuerySchema,
   promptIdParamSchema,
+  updatePromptSchema,
 } from "../validators/prompt.validators.js";
 
 const promptRouter = Router();
@@ -39,6 +40,20 @@ promptRouter.get(
     query: getMineQuerySchema,
   }),
   PromptController.getMine,
+);
+
+/**
+ * PATCH /api/prompts/:id
+ * Update prompt metadata
+ */
+promptRouter.patch(
+  "/:id",
+  requireAuth,
+  validate({
+    params: promptIdParamSchema,
+    body: updatePromptSchema,
+  }),
+  PromptController.update,
 );
 
 /**
