@@ -9,6 +9,7 @@ export default function Home() {
 
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sessionToken, setSessionToken] = useState("");
 
   const testBackend = async () => {
     try {
@@ -30,6 +31,16 @@ export default function Home() {
       setLoading(false);
     }
   };
+  const getSessionToken = async () => {
+  const token = await getToken();
+
+  if (!token) {
+    setResponse("Token nahi mila. Dobara login karo.");
+    return;
+  }
+
+  setSessionToken(token);
+};
 
   if (!isLoaded) {
     return (
@@ -199,6 +210,31 @@ export default function Home() {
                 </pre>
               </div>
             )}
+
+            <button
+  onClick={getSessionToken}
+  className="rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white"
+>
+  Get Session Token
+</button>
+
+{sessionToken && (
+  <div className="mt-4">
+    <p>Clerk Session Token (temporary):</p>
+    <textarea
+      readOnly
+      value={sessionToken}
+      className="w-full rounded border p-3"
+      rows={4}
+    />
+    <button
+      onClick={() => navigator.clipboard.writeText(sessionToken)}
+      className="mt-2 rounded bg-gray-200 px-4 py-2"
+    >
+      Copy Token
+    </button>
+  </div>
+)}
           </>
         )}
       </section>

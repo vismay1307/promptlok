@@ -23,7 +23,7 @@ export class PromptController {
 
       const prompt = await promptService.create(
         user.id,
-        req.body,
+        res.locals.validated.body
       );
 
       return res.status(201).json({
@@ -54,7 +54,7 @@ export class PromptController {
           id: user.id,
           accountStatus: user.accountStatus,
         },
-        String(req.params.id),
+        res.locals.validated.params.id
       );
 
       return res.status(200).json({
@@ -82,7 +82,7 @@ export class PromptController {
 
       const prompts = await promptService.getMine(
         user.id,
-        req.query as any,
+        res.locals.validated.query,
       );
 
       return res.status(200).json({
@@ -113,8 +113,8 @@ export class PromptController {
           id: user.id,
           accountStatus: user.accountStatus,
         },
-        String(req.params.id),
-        req.body,
+          res.locals.validated.params.id,
+          res.locals.validated.body,
       );
 
       return res.status(200).json({
@@ -145,7 +145,7 @@ export class PromptController {
           id: user.id,
           accountStatus: user.accountStatus,
         },
-        String(req.params.id),
+        res.locals.validated.params.id
       );
 
       return res.status(204).send();

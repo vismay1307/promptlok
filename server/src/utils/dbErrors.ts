@@ -17,7 +17,6 @@ export function mapDatabaseError(error: unknown): never {
         400,
         "FOREIGN_KEY_VIOLATION",
         "Referenced resource does not exist",
-        databaseError.detail,
       );
     }
 
@@ -26,7 +25,6 @@ export function mapDatabaseError(error: unknown): never {
         409,
         "UNIQUE_VIOLATION",
         "Resource already exists",
-        databaseError.detail,
       );
     }
   }

@@ -1,3 +1,4 @@
+
 import type {
   Request,
   Response,
@@ -17,26 +18,24 @@ type ValidationSchemas = {
   query?: ZodSchema;
 };
 
-export const validate = (
-  schemas: ValidationSchemas
-) => {
+export const validate = (schemas: ValidationSchemas) => {
   return (
     req: Request,
-    _res: Response,
-    next: NextFunction
+    res: Response,
+    next: NextFunction,
   ) => {
     try {
-      if (schemas.body) {
-        req.body = schemas.body.parse(req.body);
-      }
-
-      if (schemas.params) {
-        schemas.params.parse(req.params);
-      }
-
-      if (schemas.query) {
-        schemas.query.parse(req.query);
-      }
+      res.locals.validated = {
+        ...(schemas.body
+          ? { body: schemas.body.parse(req.body) }
+          : {}),
+        ...(schemas.params
+          ? { params: schemas.params.parse(req.params) }
+          : {}),
+        ...(schemas.query
+          ? { query: schemas.query.parse(req.query) }
+          : {}),
+      };
 
       next();
     } catch (error) {
@@ -46,8 +45,8 @@ export const validate = (
             400,
             "BAD_REQUEST",
             "Validation failed",
-            error.flatten().fieldErrors
-          )
+            error.flatten().fieldErrors,
+          ),
         );
       }
 

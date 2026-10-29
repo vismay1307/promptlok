@@ -3,7 +3,7 @@ import { Router } from "express";
 import { PromptController } from "../controllers/prompt.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
-
+import { requireLocalUser } from "../middleware/local-user.middleware.js";
 import {
   createPromptSchema,
   getMineQuerySchema,
@@ -16,6 +16,7 @@ const promptRouter = Router();
 promptRouter.post(
   "/",
   requireAuth,
+  requireLocalUser,
   validate({
     body: createPromptSchema,
   }),
@@ -24,7 +25,7 @@ promptRouter.post(
 
 promptRouter.get(
   "/mine",
-  requireAuth,
+  requireAuth,requireLocalUser,
   validate({
     query: getMineQuerySchema,
   }),
@@ -33,7 +34,7 @@ promptRouter.get(
 
 promptRouter.patch(
   "/:id",
-  requireAuth,
+  requireAuth,requireLocalUser,
   validate({
     params: promptIdParamSchema,
     body: updatePromptSchema,
@@ -43,7 +44,7 @@ promptRouter.patch(
 
 promptRouter.delete(
   "/:id",
-  requireAuth,
+  requireAuth,requireLocalUser,
   validate({
     params: promptIdParamSchema,
   }),
@@ -52,7 +53,7 @@ promptRouter.delete(
 
 promptRouter.get(
   "/:id",
-  requireAuth,
+  requireAuth,requireLocalUser,
   validate({
     params: promptIdParamSchema,
   }),
