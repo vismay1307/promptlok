@@ -128,3 +128,7 @@ export const findOrCreateLocalUser = async (clerkUserId: string) => {
     "Unable to generate a unique username after multiple attempts.",
   );
 };
+
+export const getExistingLocalUser = async (clerkUserId: string) => {
+  return await findUserByClerkUserId(clerkUserId);
+};

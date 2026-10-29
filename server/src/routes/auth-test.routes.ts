@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { getAuth } from "@clerk/express";
 
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { requireRole } from "../middleware/role.middleware.js";
@@ -12,22 +11,10 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const router = Router();
 
-router.get("/test", (req, res) => {
-  const { isAuthenticated, userId } =
-    getAuth(req);
-
-  if (!isAuthenticated) {
-    throw new ApiError(
-      401,
-      "UNAUTHORIZED",
-      "Unauthorized"
-    );
-  }
-
+router.get("/test", requireAuth, (_req, res) => {
   return res.status(200).json(
     new ApiResponse({
       message: "Backend authentication successful",
-      userId,
     })
   );
 });
@@ -52,14 +39,14 @@ router.get(
   validate({
     query: testQuerySchema,
   }),
-  (req, res) => {
-    return res.status(200).json(
-      new ApiResponse({
-        message: "Validation successful",
-        username: req.query.username,
-      })
-    );
-  }
+(_req, res) => {
+  return res.status(200).json(
+    new ApiResponse({
+      message: "Validation successful",
+      username: res.locals.validated.query.username,
+    }),
+  );
+}
 );
 
 router.get(

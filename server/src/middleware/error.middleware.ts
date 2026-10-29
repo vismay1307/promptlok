@@ -7,7 +7,7 @@ import type {
 import { ZodError } from "zod";
 import { ApiError } from "../utils/ApiError.js";
 import { mapDatabaseError } from "../utils/dbErrors.js";
-
+import { env } from "../config/env.js";
 export function errorHandler(
   error: unknown,
   _req: Request,
@@ -25,19 +25,23 @@ export function errorHandler(
     });
   }
 
-  if (error instanceof ApiError) {
-    return res.status(error.statusCode).json({
-      success: false,
-      error: {
-        code: error.code,
-        message: error.message,
-        ...(error.details !== undefined
-          ? { details: error.details }
-          : {}),
-      },
-    });
-  }
+ if (error instanceof ApiError) {
+  const isProduction = env.NODE_ENV === "production";
 
+  return res.status(error.statusCode).json({
+    success: false,
+    error: {
+      code: error.code,
+      message:
+        isProduction && error.statusCode >= 500
+          ? "Internal server error"
+          : error.message,
+      ...(error.details !== undefined && error.statusCode < 500
+        ? { details: error.details }
+        : {}),
+    },
+  });
+}
   try {
     mapDatabaseError(error);
   } catch (mappedError) {
