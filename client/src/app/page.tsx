@@ -1,243 +1,150 @@
 "use client";
 
-import { useAuth, UserButton } from "@clerk/nextjs";
-import { useState } from "react";
-import { createAuthenticatedApi } from "@/lib/api";
+import Link from "next/link";
+import { UserButton } from "@clerk/nextjs";
+import { useMutation, useQuery } from "@tanstack/react-query";
+
+import { ApiError } from "@/lib/api-error";
+import { queryKeys } from "@/lib/query-keys";
+import { useApi } from "@/hooks/use-api";
 
 export default function Home() {
-  const { isLoaded, isSignedIn, getToken } = useAuth();
+  const { api, isLoaded, isSignedIn } = useApi();
 
-  const [response, setResponse] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [sessionToken, setSessionToken] = useState("");
+  // Authenticated request: automatically fetches /api/auth/me.
+  const meQuery = useQuery<unknown, ApiError>({
+    queryKey: queryKeys.me(),
+    queryFn: async () => {
+      const response = await api.get<unknown>("/auth/me");
+      return response.data;
+    },
+    enabled: isLoaded && Boolean(isSignedIn),
+  });
 
-  const testBackend = async () => {
-    try {
-      setLoading(true);
-      setResponse("");
+  // Diagnostic request: lets us test the signed-out 401 case.
+  const unauthenticatedProbe = useMutation<unknown, ApiError>({
+    mutationFn: async () => {
+      const response = await api.get<unknown>("/auth/me");
+      return response.data;
+    },
+  });
 
-      const api = createAuthenticatedApi(getToken);
+  const isRunning =
+    !isLoaded ||
+    (Boolean(isSignedIn) && meQuery.isFetching) ||
+    (!isSignedIn && unauthenticatedProbe.isPending);
 
-      const response = await api.get("/auth/me");
+  const activeError = isSignedIn
+    ? meQuery.error
+    : unauthenticatedProbe.error;
 
-      setResponse(
-        JSON.stringify(response.data, null, 2)
-      );
-    } catch (error) {
-      console.error("Backend request failed:", error);
+  const responseData = isSignedIn
+    ? meQuery.data
+    : unauthenticatedProbe.data;
 
-      setResponse("Backend request failed");
-    } finally {
-      setLoading(false);
+  const hasResponse = responseData !== undefined;
+
+  function runTest() {
+    if (isSignedIn) {
+      void meQuery.refetch();
+      return;
     }
-  };
-  const getSessionToken = async () => {
-  const token = await getToken();
 
-  if (!token) {
-    setResponse("Token nahi mila. Dobara login karo.");
-    return;
-  }
-
-  setSessionToken(token);
-};
-
-  if (!isLoaded) {
-    return (
-      <main className="flex min-h-screen items-center justify-center">
-        <p>Loading...</p>
-      </main>
-    );
+    unauthenticatedProbe.reset();
+    unauthenticatedProbe.mutate();
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <header className="border-b bg-white">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          {/* Logo */}
+    <main className="min-h-screen bg-background px-5 py-12 text-foreground">
+      <div className="mx-auto max-w-3xl space-y-8">
+        <header className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">
-              PromptLok
-            </h1>
-
-            <p className="text-xs text-gray-500">
-              AI Prompt Management
+            <h1 className="text-2xl font-bold">PromptLok</h1>
+            <p className="text-sm text-muted-foreground">
+              FE-1 · API integration harness
             </p>
           </div>
 
-          {/* Auth */}
-          <div className="flex items-center gap-3">
-            {isSignedIn ? (
-              <>
-                <span className="text-sm text-gray-600">
-                  Welcome back
-                </span>
+          {isLoaded && isSignedIn ? (
+            <UserButton />
+          ) : (
+            <div className="flex gap-4 text-sm">
+              <Link href="/sign-in" className="underline">
+                Sign in
+              </Link>
+              <Link href="/sign-up" className="underline">
+                Create account
+              </Link>
+            </div>
+          )}
+        </header>
 
-                <UserButton />
-              </>
-            ) : (
-              <a
-                href="/sign-in"
-                className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
-              >
-                Sign In
-              </a>
-            )}
-          </div>
-        </div>
-      </header>
+        <section className="space-y-3 rounded-xl border border-border p-6">
+          <h2 className="text-lg font-semibold">Authentication status</h2>
 
-      {/* Main content */}
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        {!isSignedIn ? (
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-4xl font-bold tracking-tight">
-              Manage your AI prompts
-              <br />
-              in one place.
-            </h2>
+          <p aria-live="polite" className="text-sm">
+            {!isLoaded
+              ? "Loading Clerk session..."
+              : isSignedIn
+                ? "Signed in — authenticated API request enabled."
+                : "Signed out — you can test the expected 401 response."}
+          </p>
 
-            <p className="mt-4 text-gray-600">
-              Create, organize and manage your prompts
-              across different AI models.
+          <button
+            type="button"
+            onClick={runTest}
+            disabled={!isLoaded || isRunning}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isRunning
+              ? "Testing..."
+              : isSignedIn
+                ? "Retry /api/auth/me"
+                : "Test unauthenticated request"}
+          </button>
+        </section>
+
+        {activeError && (
+          <section
+            role="alert"
+            className="space-y-3 rounded-xl border border-destructive/40 p-6"
+          >
+            <h2 className="font-semibold">API request failed</h2>
+
+            <p className="text-sm text-muted-foreground">
+              {activeError.message}
             </p>
 
-            <div className="mt-8 flex justify-center gap-3">
-              <a
-                href="/sign-in"
-                className="rounded-md bg-black px-6 py-3 font-medium text-white hover:bg-gray-800"
-              >
-                Sign In
-              </a>
-
-              <a
-                href="/sign-up"
-                className="rounded-md border border-gray-300 bg-white px-6 py-3 font-medium hover:bg-gray-100"
-              >
-                Create Account
-              </a>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Dashboard header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-3xl font-bold">
-                  Dashboard
-                </h2>
-
-                <p className="mt-1 text-gray-600">
-                  Welcome to PromptLok.
-                </p>
-              </div>
-
-              <button
-                onClick={testBackend}
-                disabled={loading}
-                className="rounded-md bg-black px-5 py-2.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {loading
-                  ? "Testing..."
-                  : "Test Backend"}
-              </button>
-            </div>
-
-            {/* Dashboard cards */}
-            <div className="mt-10 grid gap-6 md:grid-cols-3">
-              <div className="rounded-xl border bg-white p-6">
-                <p className="text-sm text-gray-500">
-                  Prompts
-                </p>
-
-                <p className="mt-2 text-3xl font-bold">
-                  0
-                </p>
-
-                <p className="mt-2 text-sm text-gray-500">
-                  Your saved prompts
-                </p>
-              </div>
-
-              <div className="rounded-xl border bg-white p-6">
-                <p className="text-sm text-gray-500">
-                  Collections
-                </p>
-
-                <p className="mt-2 text-3xl font-bold">
-                  0
-                </p>
-
-                <p className="mt-2 text-sm text-gray-500">
-                  Organized prompt groups
-                </p>
-              </div>
-
-              <div className="rounded-xl border bg-white p-6">
-                <p className="text-sm text-gray-500">
-                  Account
-                </p>
-
-                <p className="mt-2 text-lg font-semibold">
-                  Authenticated
-                </p>
-
-                <p className="mt-2 text-sm text-gray-500">
-                  Clerk authentication active
-                </p>
-              </div>
-            </div>
-
-            {/* Backend response */}
-            {response && (
-              <div className="mt-8">
-                <div className="mb-2 flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">
-                    Backend Response
-                  </h3>
-
-                  <button
-                    onClick={() => setResponse("")}
-                    className="text-sm text-gray-500 hover:text-black"
-                  >
-                    Clear
-                  </button>
-                </div>
-
-                <pre className="overflow-x-auto rounded-xl border bg-gray-900 p-5 text-sm text-white">
-                  {response}
-                </pre>
-              </div>
-            )}
-
-            <button
-  onClick={getSessionToken}
-  className="rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white"
->
-  Get Session Token
-</button>
-
-{sessionToken && (
-  <div className="mt-4">
-    <p>Clerk Session Token (temporary):</p>
-    <textarea
-      readOnly
-      value={sessionToken}
-      className="w-full rounded border p-3"
-      rows={4}
-    />
-    <button
-      onClick={() => navigator.clipboard.writeText(sessionToken)}
-      className="mt-2 rounded bg-gray-200 px-4 py-2"
-    >
-      Copy Token
-    </button>
-  </div>
-)}
-          </>
+            <pre className="overflow-x-auto whitespace-pre-wrap rounded-md bg-muted p-4 text-sm">
+              {JSON.stringify(
+                {
+                  status: activeError.status,
+                  code: activeError.code,
+                  message: activeError.message,
+                  fieldErrors: activeError.fieldErrors,
+                },
+                null,
+                2,
+              )}
+            </pre>
+          </section>
         )}
-      </section>
+
+        {hasResponse && (
+          <section className="space-y-3 rounded-xl border border-border p-6">
+            <h2 className="font-semibold">API response</h2>
+
+            <pre className="overflow-x-auto whitespace-pre-wrap rounded-md bg-muted p-4 text-sm">
+              {JSON.stringify(responseData, null, 2)}
+            </pre>
+          </section>
+        )}
+
+        <p className="text-xs text-muted-foreground">
+          Temporary development page. Session tokens and secret values are
+          never displayed.
+        </p>
+      </div>
     </main>
   );
 }
