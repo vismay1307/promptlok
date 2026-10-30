@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { useMutation, useQuery } from "@tanstack/react-query";
-
+import { toast } from "sonner";
 import { ApiError } from "@/lib/api-error";
 import { queryKeys } from "@/lib/query-keys";
 import { useApi } from "@/hooks/use-api";
-
+import { ThemeToggle } from "@/components/common/theme-toggle";
 export default function Home() {
   const { api, isLoaded, isSignedIn } = useApi();
 
@@ -65,18 +65,23 @@ export default function Home() {
             </p>
           </div>
 
-          {isLoaded && isSignedIn ? (
-            <UserButton />
-          ) : (
-            <div className="flex gap-4 text-sm">
-              <Link href="/sign-in" className="underline">
-                Sign in
-              </Link>
-              <Link href="/sign-up" className="underline">
-                Create account
-              </Link>
-            </div>
-          )}
+         <div className="flex items-center gap-2">
+  <ThemeToggle />
+
+  {isLoaded && isSignedIn ? (
+    <UserButton />
+  ) : (
+    <div className="flex gap-4 text-sm">
+      <Link href="/sign-in" className="underline">
+        Sign in
+      </Link>
+
+      <Link href="/sign-up" className="underline">
+        Create account
+      </Link>
+    </div>
+  )}
+</div>
         </header>
 
         <section className="space-y-3 rounded-xl border border-border p-6">
@@ -144,6 +149,35 @@ export default function Home() {
           Temporary development page. Session tokens and secret values are
           never displayed.
         </p>
+      <section className="flex flex-wrap gap-3 rounded-xl border border-border p-6">
+  <button
+    type="button"
+    onClick={() => toast.success("Changes saved successfully!")}
+    className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground"
+  >
+    Test Success Toast
+  </button>
+
+  <button
+    type="button"
+    onClick={() =>
+      toast.error("Something went wrong.", {
+        description: "Please try again.",
+      })
+    }
+    className="rounded-md border border-border px-4 py-2 text-sm"
+  >
+    Test Error Toast
+  </button>
+
+  <button
+    type="button"
+    onClick={() => toast.info("Welcome to PromptLok!")}
+    className="rounded-md border border-border px-4 py-2 text-sm"
+  >
+    Test Info Toast
+  </button>
+</section>
       </div>
     </main>
   );
