@@ -6,6 +6,8 @@ import { QueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SonnerProvider } from "@/components/providers/sonner-provider";
 import "./globals.css";
+import { TooltipProvider } from "@/components/ui/tooltip";
+
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -33,9 +35,14 @@ export default function RootLayout({
       >
         <body className="font-sans">
           <ThemeProvider>
-            <QueryProvider>{children}</QueryProvider>
-              <SonnerProvider />
-          </ThemeProvider>
+  <TooltipProvider>
+    <QueryProvider>
+      {children}
+    </QueryProvider>
+
+    <SonnerProvider />
+  </TooltipProvider>
+</ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

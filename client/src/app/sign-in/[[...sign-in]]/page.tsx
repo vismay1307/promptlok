@@ -2,8 +2,10 @@ import { SignIn } from "@clerk/nextjs";
 
 export default function SignInPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
-      <SignIn />
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
+      <div className="w-full max-w-md">
+        <SignIn />
+      </div>
     </main>
   );
 }
