@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SonnerProvider } from "@/components/providers/sonner-provider";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
-
+import { Analytics } from "@vercel/analytics/next"
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -43,6 +43,7 @@ export default function RootLayout({
     <SonnerProvider />
   </TooltipProvider>
 </ThemeProvider>
+ <Analytics />
         </body>
       </html>
     </ClerkProvider>
