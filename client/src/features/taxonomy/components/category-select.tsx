@@ -26,6 +26,9 @@ export function CategorySelect({
   const categoriesQuery = useCategories();
 
   const categories = categoriesQuery.data ?? [];
+  const selectedCategory = categories.find(
+  (category) => category.id === value,
+);
   const isLoading = categoriesQuery.isPending;
   const hasError = categoriesQuery.isError;
   const isEmpty = !isLoading && !hasError && categories.length === 0;
@@ -46,14 +49,16 @@ export function CategorySelect({
       >
         <SelectTrigger className="w-full">
           <SelectValue
-            placeholder={
-              isLoading
-                ? "Loading categories..."
-                : isEmpty
-                  ? "No categories available"
-                  : placeholder
-            }
-          />
+  placeholder={
+    isLoading
+      ? "Loading categories..."
+      : isEmpty
+        ? "No categories available"
+        : placeholder
+  }
+>
+  {selectedCategory?.name ?? ""}
+</SelectValue>
         </SelectTrigger>
 
         <SelectContent>
