@@ -1,4 +1,6 @@
+
 import { PageHeader } from "@/components/common/page-header";
+import { CreatePromptForm } from "@/features/prompts/components/create-prompt-form";
 import { requireAuth } from "@/lib/auth/require-auth";
 
 export default async function VaultPage() {
@@ -6,12 +8,14 @@ export default async function VaultPage() {
 
   return (
     <main className="min-h-screen bg-background px-5 py-10">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-4xl space-y-8">
         <PageHeader
           eyebrow="Your Library"
           title="My Prompts"
-          description="Manage and organize your saved AI prompts."
+          description="Create, manage and organize your saved AI prompts."
         />
+
+        <CreatePromptForm />
       </div>
     </main>
   );
