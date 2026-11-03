@@ -1,3 +1,6 @@
+
+import Link from "next/link";
+
 import {
   Card,
   CardContent,
@@ -28,43 +31,49 @@ export function PromptCard({
       }).format(createdAt);
 
   return (
-    <Card className="transition-colors hover:border-primary/30">
-      <CardHeader className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize text-muted-foreground">
-            {prompt.lifecycleStatus}
-          </span>
+    <Link
+      href={`/vault/${prompt.id}`}
+      className="block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      aria-label={`View prompt: ${prompt.title}`}
+    >
+      <Card className="transition-colors hover:border-primary/40 hover:shadow-sm">
+        <CardHeader className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize text-muted-foreground">
+              {prompt.lifecycleStatus}
+            </span>
 
-          <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-            {prompt.promptType.toUpperCase()}
-          </span>
+            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+              {prompt.promptType.toUpperCase()}
+            </span>
 
-          <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-            {categoryName ?? "Uncategorized"}
-          </span>
-        </div>
+            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+              {categoryName ?? "Uncategorized"}
+            </span>
+          </div>
 
-        <div className="space-y-1">
-          <CardTitle className="text-lg">
-            {prompt.title}
-          </CardTitle>
+          <div className="space-y-1">
+            <CardTitle className="text-lg">
+              {prompt.title}
+            </CardTitle>
 
-          <CardDescription>
-            {prompt.description?.trim() ||
-              "No description added."}
-          </CardDescription>
-        </div>
-      </CardHeader>
+            <CardDescription>
+              {prompt.description?.trim() ||
+                "No description added."}
+            </CardDescription>
+          </div>
+        </CardHeader>
 
-      <CardContent>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-xs text-muted-foreground">
-          <span>
-            {prompt.aiModelMetadata || "No AI model specified"}
-          </span>
+        <CardContent>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-xs text-muted-foreground">
+            <span>
+              {prompt.aiModelMetadata || "No AI model specified"}
+            </span>
 
-          <span>Created {formattedDate}</span>
-        </div>
-      </CardContent>
-    </Card>
+            <span>Created {formattedDate}</span>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
