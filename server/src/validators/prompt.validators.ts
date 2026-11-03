@@ -226,3 +226,54 @@ export const updatePromptSchema = z
 export type UpdatePromptInput = z.infer<
   typeof updatePromptSchema
 >;
+
+
+/**
+ * POST /api/prompts/:id/versions
+ *
+ * Creates a new immutable prompt version.
+ */
+export const createPromptVersionSchema = z
+  .object({
+    content: z
+      .string()
+      .min(1, "Content is required")
+      .max(
+        20000,
+        "Content must not exceed 20000 characters",
+      ),
+
+    changeNote: z
+      .string()
+      .max(
+        500,
+        "Change note must not exceed 500 characters",
+      )
+      .optional(),
+  })
+  .strict();
+
+export type CreatePromptVersionInput = z.infer<
+  typeof createPromptVersionSchema
+>;
+
+/**
+ * GET /api/prompts/:id/versions/:versionId
+ *
+ * Validates both prompt and version IDs.
+ */
+export const promptVersionParamSchema = z
+  .object({
+    id: z
+      .string()
+      .uuid("Invalid prompt ID"),
+
+    versionId: z
+      .string()
+      .uuid("Invalid version ID"),
+  })
+  .strict();
+
+export type PromptVersionParam = z.infer<
+  typeof promptVersionParamSchema
+>;

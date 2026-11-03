@@ -81,3 +81,10 @@ export type Prompt = {
   createdAt: string;
   updatedAt: string;
 };
+
+import type { PromptVersion } from "./prompt-version";
+
+export type PromptDetail = Prompt & {
+  currentVersion: PromptVersion | null;
+  canEdit: boolean;
+};

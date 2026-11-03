@@ -12,9 +12,12 @@ import { ApiError } from "../utils/ApiError.js";
 
 import type {
   CreatePromptInput,
+  CreatePromptVersionInput,
   GetMineQuery,
   UpdatePromptInput,
+  createPromptVersionSchema
 } from "../validators/prompt.validators.js";
+import { prompts } from "../db/schema/prompts.schema.js";
 
 export class PromptService {
   constructor(
@@ -312,7 +315,187 @@ export class PromptService {
 
     return deletedPrompt;
   }
+  async getVersions(
+    user: {
+      id: string;
+      accountStatus: string;
+    } | null,
+    promptId: string,
+  ) {
+    await authorizationService.assertCanView(
+      user,
+      promptId,
+    );
 
+    return this.promptVersionRepository.findByPromptId(
+      promptId,
+    );
+  }
+
+  async getVersionById(
+    user: {
+      id: string;
+      accountStatus: string;
+    } | null,
+    promptId: string,
+    versionId: string,
+  ) {
+    await authorizationService.assertCanView(
+      user,
+      promptId,
+    );
+
+    const version =
+      await this.promptVersionRepository.findByPromptAndVersion(
+        promptId,
+        versionId,
+      );
+
+    if (!version) {
+      throw new ApiError(
+        404,
+        "NOT_FOUND",
+        "Prompt version not found",
+      );
+    }
+
+    return version;
+  }
+
+  async createVersion(
+    user: {
+      id: string;
+      accountStatus: string;
+    } | null,
+    promptId: string,
+    input: CreatePromptVersionInput,
+  ) {
+    await authorizationService.assertCanEdit(
+      user,
+      promptId,
+    );
+
+    if (!user) {
+      throw new ApiError(
+        401,
+        "UNAUTHORIZED",
+        "Authentication required",
+      );
+    }
+
+    return db.transaction(async (tx) => {
+      // Lock the prompt row so concurrent version
+      // creation requests for this prompt are serialized.
+      const lockedPrompt = await tx
+        .select()
+        .from(prompts)
+        .where(eq(prompts.id, promptId))
+        .for("update")
+        .limit(1);
+
+      const prompt = lockedPrompt[0];
+
+      if (!prompt || prompt.deletedAt) {
+        throw new ApiError(
+          404,
+          "NOT_FOUND",
+          "Prompt not found",
+        );
+      }
+
+      const promptRepository = new PromptRepository(tx);
+
+      const promptVersionRepository =
+        new PromptVersionRepository(tx);
+
+      const latestVersion =
+        await promptVersionRepository.findLatestByPromptId(
+          promptId,
+        );
+
+      const nextVersionNumber =
+        (latestVersion?.versionNumber ?? 0) + 1;
+
+      const version = await promptVersionRepository.create({
+        promptId,
+        versionNumber: nextVersionNumber,
+        content: input.content,
+        changeNote: input.changeNote,
+        editorId: user.id,
+      });
+
+      if (!version) {
+        throw new ApiError(
+          500,
+          "INTERNAL_SERVER_ERROR",
+          "Failed to create prompt version",
+        );
+      }
+
+      const updatedPrompt = await promptRepository.update(
+        promptId,
+        {
+          currentVersionId: version.id,
+          updatedAt: new Date(),
+        },
+      );
+
+      if (!updatedPrompt) {
+        throw new ApiError(
+          500,
+          "INTERNAL_SERVER_ERROR",
+          "Failed to update current prompt version",
+        );
+      }
+
+      return version;
+    });
+  }
+
+  async restoreVersion(
+    user: {
+      id: string;
+      accountStatus: string;
+    } | null,
+    promptId: string,
+    versionId: string,
+  ) {
+    await authorizationService.assertCanEdit(
+      user,
+      promptId,
+    );
+
+    if (!user) {
+      throw new ApiError(
+        401,
+        "UNAUTHORIZED",
+        "Authentication required",
+      );
+    }
+
+    const sourceVersion =
+      await this.promptVersionRepository.findByPromptAndVersion(
+        promptId,
+        versionId,
+      );
+
+    if (!sourceVersion) {
+      throw new ApiError(
+        404,
+        "NOT_FOUND",
+        "Prompt version not found",
+      );
+    }
+
+    return this.createVersion(
+      user,
+      promptId,
+      {
+        content: sourceVersion.content,
+        changeNote: `Restored from version ${sourceVersion.versionNumber}`,
+      },
+    );
+  }
   private async canEdit(
     user: {
       id: string;

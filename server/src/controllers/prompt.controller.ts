@@ -153,4 +153,133 @@ export class PromptController {
       next(error);
     }
   }
+    static async getVersions(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return next(
+          new Error("Authenticated user not found"),
+        );
+      }
+
+      const versions = await promptService.getVersions(
+        {
+          id: user.id,
+          accountStatus: user.accountStatus,
+        },
+        res.locals.validated.params.id,
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: versions,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getVersionById(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return next(
+          new Error("Authenticated user not found"),
+        );
+      }
+
+      const version =
+        await promptService.getVersionById(
+          {
+            id: user.id,
+            accountStatus: user.accountStatus,
+          },
+          res.locals.validated.params.id,
+          res.locals.validated.params.versionId,
+        );
+
+      return res.status(200).json({
+        success: true,
+        data: version,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async createVersion(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return next(
+          new Error("Authenticated user not found"),
+        );
+      }
+
+      const version =
+        await promptService.createVersion(
+          {
+            id: user.id,
+            accountStatus: user.accountStatus,
+          },
+          res.locals.validated.params.id,
+          res.locals.validated.body,
+        );
+
+      return res.status(201).json({
+        success: true,
+        data: version,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async restoreVersion(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return next(
+          new Error("Authenticated user not found"),
+        );
+      }
+
+      const version =
+        await promptService.restoreVersion(
+          {
+            id: user.id,
+            accountStatus: user.accountStatus,
+          },
+          res.locals.validated.params.id,
+          res.locals.validated.params.versionId,
+        );
+
+      return res.status(201).json({
+        success: true,
+        data: version,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

@@ -9,6 +9,8 @@ import {
   getMineQuerySchema,
   promptIdParamSchema,
   updatePromptSchema,
+  createPromptVersionSchema,
+  promptVersionParamSchema
 } from "../validators/prompt.validators.js";
 
 const promptRouter = Router();
@@ -50,7 +52,50 @@ promptRouter.delete(
   }),
   PromptController.softDelete,
 );
+// Get all versions of a prompt
+promptRouter.get(
+  "/:id/versions",
+  requireAuth,
+  requireLocalUser,
+  validate({
+    params: promptIdParamSchema,
+  }),
+  PromptController.getVersions,
+);
 
+// Get a specific prompt version
+promptRouter.get(
+  "/:id/versions/:versionId",
+  requireAuth,
+  requireLocalUser,
+  validate({
+    params: promptVersionParamSchema,
+  }),
+  PromptController.getVersionById,
+);
+
+// Create a new prompt version
+promptRouter.post(
+  "/:id/versions",
+  requireAuth,
+  requireLocalUser,
+  validate({
+    params: promptIdParamSchema,
+    body: createPromptVersionSchema,
+  }),
+  PromptController.createVersion,
+);
+
+// Restore a previous version by creating a new version
+promptRouter.post(
+  "/:id/versions/:versionId/restore",
+  requireAuth,
+  requireLocalUser,
+  validate({
+    params: promptVersionParamSchema,
+  }),
+  PromptController.restoreVersion,
+);
 promptRouter.get(
   "/:id",
   requireAuth,requireLocalUser,

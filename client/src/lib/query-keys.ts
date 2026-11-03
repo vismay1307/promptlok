@@ -1,3 +1,4 @@
+
 export type PromptLifecycleStatus = "draft" | "active" | "archived";
 
 export type PromptListFilters = {
@@ -25,5 +26,11 @@ export const queryKeys = {
 
     detail: (id: string) =>
       [...queryKeys.all, "prompts", "detail", id] as const,
+
+    versions: (id: string) =>
+      [...queryKeys.all, "prompts", "versions", id] as const,
+
+    version: (id: string, versionId: string) =>
+      [...queryKeys.all, "prompts", "versions", id, versionId] as const,
   },
 };
