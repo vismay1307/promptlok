@@ -1,6 +1,6 @@
-
 import { PageHeader } from "@/components/common/page-header";
 import { CreatePromptForm } from "@/features/prompts/components/create-prompt-form";
+import { PromptList } from "@/features/prompts/components/prompt-list";
 import { requireAuth } from "@/lib/auth/require-auth";
 
 export default async function VaultPage() {
@@ -14,6 +14,8 @@ export default async function VaultPage() {
           title="My Prompts"
           description="Create, manage and organize your saved AI prompts."
         />
+
+        <PromptList />
 
         <CreatePromptForm />
       </div>

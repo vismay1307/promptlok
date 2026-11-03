@@ -1,6 +1,6 @@
 
 import { z } from "zod";
-
+import type { PromptLifecycleStatus } from "@/lib/query-keys";
 /**
  * Backend accepts only "text" for prompt creation currently.
  */
@@ -54,16 +54,29 @@ export type CreatePromptInput = z.infer<
 /**
  * Successful prompt creation response data.
  */
+/**
+ * Prompt visibility options supported by the backend.
+ */
+export type PromptVisibility =
+  | "private"
+  | "shared"
+  | "team"
+  | "organization"
+  | "public";
+
+/**
+ * Prompt response returned by the backend.
+ */
 export type Prompt = {
   id: string;
   authorId: string;
   title: string;
   description: string | null;
-  categoryId: string;
+  categoryId: string | null;
   promptType: "text" | "image";
   aiModelMetadata: string | null;
-  visibility: string;
-  lifecycleStatus: "draft" | "active" | "archived";
+  visibility: PromptVisibility;
+  lifecycleStatus: PromptLifecycleStatus;
   currentVersionId: string | null;
   createdAt: string;
   updatedAt: string;
