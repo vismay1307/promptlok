@@ -407,14 +407,22 @@ export class PromptService {
 
       const promptVersionRepository =
         new PromptVersionRepository(tx);
+const latestVersion =
+  await promptVersionRepository.findLatestByPromptId(
+    promptId,
+  );
 
-      const latestVersion =
-        await promptVersionRepository.findLatestByPromptId(
-          promptId,
-        );
+// Prevent creating a duplicate version when content is unchanged.
+if (latestVersion && latestVersion.content === input.content) {
+  throw new ApiError(
+    409,
+    "NO_CHANGES",
+    "Prompt content has not changed. No new version was created.",
+  );
+}
 
-      const nextVersionNumber =
-        (latestVersion?.versionNumber ?? 0) + 1;
+const nextVersionNumber =
+  (latestVersion?.versionNumber ?? 0) + 1;
 
       const version = await promptVersionRepository.create({
         promptId,

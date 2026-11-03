@@ -267,6 +267,7 @@ export function PromptDetail({ promptId }: PromptDetailProps) {
       <VersionHistory
   promptId={promptId}
   currentVersion={currentVersion}
+  canEdit={prompt.canEdit}
 />
     </section>
   );

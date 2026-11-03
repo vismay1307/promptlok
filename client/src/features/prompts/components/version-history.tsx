@@ -2,8 +2,13 @@
 "use client";
 
 import { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { Eye, History, Loader2, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -11,135 +16,308 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
 
-import { usePromptVersion } from "../hooks/use-prompt-version";
-import { usePromptVersions } from "../hooks/use-prompt-versions";
-import type { PromptVersion } from "../types/prompt-version";
+import {
+  createPromptVersionSchema,
+  type CreatePromptVersionInput,
+  type PromptVersion,
+} from "@/features/prompts/types/prompt-version";
+
+import { usePromptVersions } from "@/features/prompts/hooks/use-prompt-versions";
+import { usePromptVersion } from "@/features/prompts/hooks/use-prompt-version";
+import { useCreatePromptVersion } from "@/features/prompts/hooks/use-create-prompt-version";
+import { useRestorePromptVersion } from "@/features/prompts/hooks/use-restore-prompt-version";
 
 type VersionHistoryProps = {
   promptId: string;
   currentVersion: PromptVersion | null;
+  canEdit: boolean;
 };
-
-function formatDate(date: string) {
-  const parsedDate = new Date(date);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return "Date unavailable";
-  }
-
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(parsedDate);
-}
 
 export function VersionHistory({
   promptId,
   currentVersion,
+  canEdit,
 }: VersionHistoryProps) {
-  const [selectedVersionId, setSelectedVersionId] =
-    useState<string | null>(null);
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(
+    null,
+  );
+
+  const [restoreTarget, setRestoreTarget] = useState<{
+    id: string;
+    versionNumber: number;
+  } | null>(null);
 
   const {
     data: versions,
-    isLoading,
-    isError,
-    error,
-    refetch,
-    isFetching,
+    isLoading: isVersionsLoading,
+    isError: isVersionsError,
+    refetch: refetchVersions,
   } = usePromptVersions(promptId);
 
-  const selectedVersion = usePromptVersion(
-    promptId,
-    selectedVersionId ?? "",
-  );
+  const {
+    data: selectedVersion,
+    isLoading: isSelectedVersionLoading,
+    isError: isSelectedVersionError,
+    refetch: refetchSelectedVersion,
+  } = usePromptVersion(promptId, selectedVersionId ?? "");
 
-  const isCurrentSelected =
-    !selectedVersionId ||
-    selectedVersionId === currentVersion?.id;
+  // Mutation hooks do not receive promptId as an argument.
+  const createVersion = useCreatePromptVersion();
+  const restoreVersion = useRestorePromptVersion();
 
-  const displayedVersion = isCurrentSelected
-    ? currentVersion
-    : selectedVersion.data;
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+  } = useForm<CreatePromptVersionInput>({
+    resolver: zodResolver(createPromptVersionSchema),
+    defaultValues: {
+      content: currentVersion?.content ?? "",
+      changeNote: "",
+    },
+  });
+
+  // useWatch subscribes to content changes without using RHF's watch().
+  const watchedContent = useWatch({
+    control,
+    name: "content",
+  });
+
+  const currentContent = currentVersion?.content ?? "";
+  const editorContent = watchedContent ?? "";
+
+  const hasContentChanged = editorContent !== currentContent;
+
+  const onCreateVersion = async (values: CreatePromptVersionInput) => {
+    if (!hasContentChanged) {
+      toast.info("No changes detected. Update the prompt content first.");
+      return;
+    }
+
+    try {
+      await createVersion.mutateAsync({
+        promptId,
+        payload: {
+          content: values.content,
+          ...(values.changeNote?.trim()
+            ? { changeNote: values.changeNote.trim() }
+            : {}),
+        },
+      });
+
+      toast.success("New prompt version created.");
+
+      // Reset the editor after successful creation.
+      reset({
+        content: values.content,
+        changeNote: "",
+      });
+
+      setSelectedVersionId(null);
+    } catch {
+      toast.error("Failed to create a new version. Please try again.");
+    }
+  };
+
+  const onRestoreVersion = async () => {
+    if (!restoreTarget) return;
+
+    try {
+      const restoredVersion = await restoreVersion.mutateAsync({
+        promptId,
+        versionId: restoreTarget.id,
+      });
+
+      toast.success(
+        `Version ${restoreTarget.versionNumber} restored as a new version.`,
+      );
+
+      // The restore API returns the newly created version.
+      reset({
+        content: restoredVersion.content,
+        changeNote: "",
+      });
+
+      setSelectedVersionId(null);
+      setRestoreTarget(null);
+    } catch {
+      toast.error("Failed to restore this version. Please try again.");
+    }
+  };
+
+  const formatDate = (date: string) =>
+    new Intl.DateTimeFormat("en-IN", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(date));
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Version History</CardTitle>
-        <CardDescription>
-          Browse previous versions of this prompt and inspect their content.
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-6">
+      {/* Create New Version */}
+      {canEdit && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Create a New Version</CardTitle>
+            <CardDescription>
+              Update the prompt content and save it as a new version.
+              Previous versions will remain unchanged.
+            </CardDescription>
+          </CardHeader>
 
-      <CardContent className="space-y-6">
-        {isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div
-                key={index}
-                className="space-y-2 rounded-lg border border-border p-4"
-              >
-                <Skeleton className="h-5 w-28" />
-                <Skeleton className="h-4 w-48" />
-              </div>
-            ))}
-          </div>
-        ) : isError ? (
-          <div className="rounded-lg border border-destructive/30 p-5 text-center">
-            <p className="text-sm text-muted-foreground">
-              {error.message || "Unable to load version history."}
-            </p>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-3"
-              onClick={() => refetch()}
-              disabled={isFetching}
+          <CardContent>
+            <form
+              onSubmit={handleSubmit(onCreateVersion)}
+              className="space-y-4"
             >
-              {isFetching ? "Retrying..." : "Try again"}
-            </Button>
-          </div>
-        ) : !versions?.length ? (
-          <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            No version history available.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {versions.map((version) => {
-              const isCurrent =
-                version.id === currentVersion?.id;
+              <div className="space-y-2">
+                <Label htmlFor="version-content">Prompt Content</Label>
 
-              const isSelected =
-                isCurrentSelected
-                  ? isCurrent
-                  : selectedVersionId === version.id;
+                <Textarea
+                  id="version-content"
+                  placeholder="Write your updated prompt content..."
+                  rows={10}
+                  {...register("content")}
+                  aria-invalid={Boolean(errors.content)}
+                />
+
+                {errors.content && (
+                  <p className="text-sm text-destructive">
+                    {errors.content.message}
+                  </p>
+                )}
+
+                <p className="text-xs text-muted-foreground">
+                  {editorContent.length} / 20,000 characters
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="change-note">
+                  Change Note{" "}
+                  <span className="text-muted-foreground">(optional)</span>
+                </Label>
+
+                <Input
+                  id="change-note"
+                  placeholder="e.g. Improved instructions and added examples"
+                  maxLength={500}
+                  {...register("changeNote")}
+                  aria-invalid={Boolean(errors.changeNote)}
+                />
+
+                {errors.changeNote && (
+                  <p className="text-sm text-destructive">
+                    {errors.changeNote.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  type="submit"
+                  disabled={
+                    createVersion.isPending || !hasContentChanged
+                  }
+                >
+                  {createVersion.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save New Version"
+                  )}
+                </Button>
+
+                {!hasContentChanged && (
+                  <p className="text-xs text-muted-foreground">
+                    Make a content change to create a new version.
+                  </p>
+                )}
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Version History */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <History className="h-5 w-5" />
+            <CardTitle>Version History</CardTitle>
+          </div>
+
+          <CardDescription>
+            Browse previous versions of this prompt.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          {isVersionsLoading && (
+            <div className="space-y-3">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+          )}
+
+          {isVersionsError && (
+            <div className="space-y-3">
+              <p className="text-sm text-destructive">
+                Unable to load version history.
+              </p>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => refetchVersions()}
+              >
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {!isVersionsLoading &&
+            !isVersionsError &&
+            (!versions || versions.length === 0) && (
+              <p className="text-sm text-muted-foreground">
+                No version history available.
+              </p>
+            )}
+
+          {!isVersionsLoading &&
+            !isVersionsError &&
+            versions?.map((version) => {
+              const isCurrent = version.id === currentVersion?.id;
+              const isSelected = version.id === selectedVersionId;
 
               return (
                 <div
                   key={version.id}
-                  className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4 transition-colors ${
-                    isSelected
-                      ? "border-primary/50 bg-primary/5"
-                      : "border-border"
-                  }`}
+                  className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold">
+                      <p className="font-medium">
                         Version {version.versionNumber}
                       </p>
 
                       {isCurrent && (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                          Current
-                        </span>
+                        <Badge variant="default">Current</Badge>
+                      )}
+
+                      {isSelected && (
+                        <Badge variant="secondary">Viewing</Badge>
                       )}
                     </div>
 
@@ -147,74 +325,116 @@ export function VersionHistory({
                       {formatDate(version.createdAt)}
                     </p>
 
-                    <p className="text-sm text-muted-foreground">
-                      {version.changeNote || "No change note"}
-                    </p>
+                    {version.changeNote && (
+                      <p className="text-sm text-muted-foreground">
+                        {version.changeNote}
+                      </p>
+                    )}
                   </div>
 
-                  <Button
-                    type="button"
-                    variant={isSelected ? "secondary" : "outline"}
-                    size="sm"
-                    onClick={() =>
-                      setSelectedVersionId(
-                        isCurrent ? null : version.id,
-                      )
-                    }
-                  >
-                    {isSelected ? "Selected" : "View"}
-                  </Button>
+                  <div className="flex shrink-0 flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        setSelectedVersionId(
+                          isCurrent ? null : version.id,
+                        )
+                      }
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      {isSelected ? "Selected" : "View"}
+                    </Button>
+
+                    {canEdit && !isCurrent && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          setRestoreTarget({
+                            id: version.id,
+                            versionNumber: version.versionNumber,
+                          })
+                        }
+                      >
+                        <RotateCcw className="mr-2 h-4 w-4" />
+                        Restore
+                      </Button>
+                    )}
+                  </div>
                 </div>
               );
             })}
-          </div>
-        )}
+        </CardContent>
+      </Card>
 
+      {/* Selected Historical Version */}
+      {selectedVersionId && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Selected Version Content</CardTitle>
+            <CardDescription>
+              Read-only content of the selected historical version.
+            </CardDescription>
+          </CardHeader>
 
-        {/* Selected Version Content */}
-        {(isCurrentSelected && displayedVersion) ||
-        (!isCurrentSelected && selectedVersion.isLoading) ||
-        (!isCurrentSelected && selectedVersion.isError) ||
-        (!isCurrentSelected && selectedVersion.data) ? (
-          <div className="space-y-3 border-t border-border pt-5">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="font-semibold">
-                {displayedVersion
-                  ? `Version ${displayedVersion.versionNumber} Content`
-                  : "Selected Version Content"}
-              </h3>
+          <CardContent className="space-y-3">
+            {isSelectedVersionLoading && (
+              <Skeleton className="h-48 w-full" />
+            )}
 
-              <span className="text-xs text-muted-foreground">
-                {isCurrentSelected ? "Current version" : "Historical version"}
-              </span>
-            </div>
-
-            {!isCurrentSelected && selectedVersion.isLoading ? (
-              <Skeleton className="h-40 w-full" />
-            ) : !isCurrentSelected && selectedVersion.isError ? (
-              <div className="rounded-lg border border-destructive/30 p-4">
-                <p className="text-sm text-muted-foreground">
+            {isSelectedVersionError && (
+              <div className="space-y-3">
+                <p className="text-sm text-destructive">
                   Unable to load this version.
                 </p>
+
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="mt-3"
-                  onClick={() => selectedVersion.refetch()}
+                  onClick={() => refetchSelectedVersion()}
                 >
-                  Try again
+                  Retry
                 </Button>
               </div>
-            ) : displayedVersion ? (
-              <pre className="max-h-[500px] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-muted/40 p-4 font-mono text-sm leading-7">
-                {displayedVersion.content}
-              </pre>
-            ) : null}
-          </div>
-        ) : null}
+            )}
 
-      </CardContent>
-    </Card>
+            {!isSelectedVersionLoading &&
+              !isSelectedVersionError &&
+              selectedVersion && (
+                <Textarea
+                  value={selectedVersion.content}
+                  readOnly
+                  rows={12}
+                  className="font-mono text-sm"
+                />
+              )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Restore Confirmation */}
+      <ConfirmDialog
+        open={Boolean(restoreTarget)}
+        onOpenChange={(open) => {
+          if (!open) setRestoreTarget(null);
+        }}
+        title="Restore this version?"
+        description={
+          <>
+            This will create a new version using the content from Version{" "}
+            <strong>{restoreTarget?.versionNumber}</strong>. Existing version
+            history will remain unchanged.
+          </>
+        }
+        confirmLabel="Restore Version"
+        loadingLabel="Restoring..."
+        isLoading={restoreVersion.isPending}
+        onConfirm={onRestoreVersion}
+      />
+    </div>
   );
 }
