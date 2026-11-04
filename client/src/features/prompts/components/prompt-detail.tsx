@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { VersionHistory } from "./version-history";
+import { EditPromptForm } from "./edit-prompt-form";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,7 +15,6 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCategories } from "@/hooks/use-categories";
-
 import { usePromptDetail } from "../hooks/use-prompt-detail";
 
 type PromptDetailProps = {
@@ -23,6 +23,7 @@ type PromptDetailProps = {
 
 export function PromptDetail({ promptId }: PromptDetailProps) {
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const {
     data: prompt,
@@ -113,6 +114,25 @@ export function PromptDetail({ promptId }: PromptDetailProps) {
     }).format(parsedDate);
   };
 
+  if (isEditing && prompt.canEdit) {
+    return (
+      <section className="space-y-6">
+        <Link
+          href="/vault"
+          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          ← Back to Vault
+        </Link>
+
+        <EditPromptForm
+          prompt={prompt}
+          onCancel={() => setIsEditing(false)}
+          onSaved={() => setIsEditing(false)}
+        />
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-8">
       <Link
@@ -160,6 +180,16 @@ export function PromptDetail({ promptId }: PromptDetailProps) {
           >
             {copied ? "Copied!" : "Copy prompt"}
           </Button>
+
+          {prompt.canEdit && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsEditing(true)}
+            >
+              Edit details
+            </Button>
+          )}
 
           <span className="text-sm text-muted-foreground">
             {prompt.canEdit ? "You can edit this prompt" : "View only"}
@@ -264,11 +294,13 @@ export function PromptDetail({ promptId }: PromptDetailProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Version History */}
       <VersionHistory
-  promptId={promptId}
-  currentVersion={currentVersion}
-  canEdit={prompt.canEdit}
-/>
+        promptId={promptId}
+        currentVersion={currentVersion}
+        canEdit={prompt.canEdit}
+      />
     </section>
   );
 }

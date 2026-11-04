@@ -1,13 +1,17 @@
-
 export type PromptLifecycleStatus = "draft" | "active" | "archived";
+
+export type PromptSortBy = "createdAt" | "updatedAt" | "title";
+export type PromptSortOrder = "asc" | "desc";
 
 export type PromptListFilters = {
   limit?: number;
   offset?: number;
   categoryId?: string;
   lifecycleStatus?: PromptLifecycleStatus;
+  search?: string;
+  sortBy?: PromptSortBy;
+  sortOrder?: PromptSortOrder;
 };
-
 export const queryKeys = {
   all: ["promptlok"] as const,
 

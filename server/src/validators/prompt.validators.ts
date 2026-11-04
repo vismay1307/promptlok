@@ -78,45 +78,46 @@ export const getMineQuerySchema = z
     limit: z.coerce
       .number()
       .int("Limit must be an integer")
-      .min(
-        1,
-        "Limit must be at least 1",
-      )
-      .max(
-        50,
-        "Limit must not exceed 50",
-      )
+      .min(1, "Limit must be at least 1")
+      .max(50, "Limit must not exceed 50")
       .default(20),
 
     offset: z.coerce
       .number()
       .int("Offset must be an integer")
-      .min(
-        0,
-        "Offset cannot be negative",
-      )
+      .min(0, "Offset cannot be negative")
       .default(0),
 
     categoryId: z
       .string()
-      .uuid(
-        "Category ID must be a valid UUID",
-      )
+      .uuid("Category ID must be a valid UUID")
       .optional(),
 
     lifecycleStatus: z
-      .enum([
-        "draft",
-        "active",
-        "archived",
-      ])
+      .enum(["draft", "active", "archived"])
       .optional(),
+
+    search: z
+      .string()
+      .trim()
+      .min(1, "Search cannot be empty")
+      .max(100, "Search cannot exceed 100 characters")
+      .optional(),
+
+    sortBy: z
+      .enum(["createdAt", "updatedAt", "title"])
+      .default("createdAt"),
+
+    sortOrder: z
+      .enum(["asc", "desc"])
+      .default("desc"),
   })
   .strict();
 
 export type GetMineQuery = z.infer<
   typeof getMineQuerySchema
 >;
+
 
 /**
  * PATCH /api/prompts/:id
