@@ -8,6 +8,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "db:generate": "drizzle-kit generate",
+    "test": "node --import tsx --test src/test/prompt-version.integration.test.ts",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push"
   },

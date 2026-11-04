@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 
 import { db } from "../db/db.js";
 import { promptTags } from "../db/schema/prompt-tags.js";
+import { tags } from "../db/schema/tags.schema.js";
 
 type DbExecutor = Pick<
   typeof db,
@@ -17,6 +18,25 @@ export class PromptTagRepository {
     return this.database
       .select()
       .from(promptTags)
+      .where(
+        eq(
+          promptTags.promptId,
+          promptId,
+        ),
+      );
+  }
+
+  async findTagsByPromptId(promptId: string) {
+    return this.database
+      .select({
+        id: tags.id,
+        name: tags.name,
+      })
+      .from(promptTags)
+      .innerJoin(
+        tags,
+        eq(promptTags.tagId, tags.id),
+      )
       .where(
         eq(
           promptTags.promptId,

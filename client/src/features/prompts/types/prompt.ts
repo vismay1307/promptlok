@@ -1,6 +1,9 @@
 
 import { z } from "zod";
 import type { PromptLifecycleStatus } from "@/lib/query-keys";
+import type { Tag } from "@/lib/types/taxonomy";
+import type { PromptVersion } from "./prompt-version";
+
 /**
  * Backend accepts only "text" for prompt creation currently.
  */
@@ -52,8 +55,18 @@ export type CreatePromptInput = z.infer<
 >;
 
 /**
- * Successful prompt creation response data.
+ * Prompt metadata update payload.
+ * Content is intentionally excluded because content edits
+ * must go through the version APIs.
  */
+export type UpdatePromptInput = {
+  title?: string;
+  description?: string | null;
+  categoryId?: string;
+  tagIds?: string[];
+  aiModelMetadata?: string | null;
+};
+
 /**
  * Prompt visibility options supported by the backend.
  */
@@ -82,9 +95,8 @@ export type Prompt = {
   updatedAt: string;
 };
 
-import type { PromptVersion } from "./prompt-version";
-
 export type PromptDetail = Prompt & {
   currentVersion: PromptVersion | null;
   canEdit: boolean;
+  tags: Tag[];
 };

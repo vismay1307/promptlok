@@ -1,8 +1,10 @@
+
 import { eq, inArray } from "drizzle-orm";
 
 import { db } from "../db/db.js";
 import { promptCategories } from "../db/schema/categories.schema.js";
 import { tags } from "../db/schema/tags.schema.js";
+import { prompts } from "../db/schema/prompts.schema.js";
 import { PromptRepository } from "../repositories/prompt.repository.js";
 import { PromptTagRepository } from "../repositories/promptTag.repository.js";
 import { PromptVersionRepository } from "../repositories/promptVersion.repository.js";
@@ -15,9 +17,7 @@ import type {
   CreatePromptVersionInput,
   GetMineQuery,
   UpdatePromptInput,
-  createPromptVersionSchema
 } from "../validators/prompt.validators.js";
-import { prompts } from "../db/schema/prompts.schema.js";
 
 export class PromptService {
   constructor(
@@ -146,10 +146,14 @@ export class PromptService {
 
     const canEdit = await this.canEdit(user, promptId);
 
+    const promptTags =
+      await this.promptTagRepository.findTagsByPromptId(promptId);
+
     return {
       ...PromptMapper.toDTO(prompt),
       currentVersion,
       canEdit,
+      tags: promptTags,
     };
   }
 
@@ -315,6 +319,7 @@ export class PromptService {
 
     return deletedPrompt;
   }
+
   async getVersions(
     user: {
       id: string;
@@ -407,22 +412,23 @@ export class PromptService {
 
       const promptVersionRepository =
         new PromptVersionRepository(tx);
-const latestVersion =
-  await promptVersionRepository.findLatestByPromptId(
-    promptId,
-  );
 
-// Prevent creating a duplicate version when content is unchanged.
-if (latestVersion && latestVersion.content === input.content) {
-  throw new ApiError(
-    409,
-    "NO_CHANGES",
-    "Prompt content has not changed. No new version was created.",
-  );
-}
+      const latestVersion =
+        await promptVersionRepository.findLatestByPromptId(
+          promptId,
+        );
 
-const nextVersionNumber =
-  (latestVersion?.versionNumber ?? 0) + 1;
+      // Prevent creating a duplicate version when content is unchanged.
+      if (latestVersion && latestVersion.content === input.content) {
+        throw new ApiError(
+          409,
+          "NO_CHANGES",
+          "Prompt content has not changed. No new version was created.",
+        );
+      }
+
+      const nextVersionNumber =
+        (latestVersion?.versionNumber ?? 0) + 1;
 
       const version = await promptVersionRepository.create({
         promptId,
@@ -504,6 +510,7 @@ const nextVersionNumber =
       },
     );
   }
+
   private async canEdit(
     user: {
       id: string;
