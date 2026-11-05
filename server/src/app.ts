@@ -8,7 +8,7 @@ import { errorHandler } from "./middleware/error.middleware.js";
 import apiRouter from "./routes/index.routes.js";
 
 const app = express();
-
+app.set("query parser", "extended");
 app.use(
   cors({
     origin: env.CLIENT_URL,

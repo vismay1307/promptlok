@@ -15,6 +15,7 @@ type TagInputProps = {
   onChange: (tags: Tag[]) => void;
   disabled?: boolean;
   maxTags?: number;
+  allowCreate?: boolean;
 };
 
 export function TagInput({
@@ -22,6 +23,7 @@ export function TagInput({
   onChange,
   disabled = false,
   maxTags = 10,
+  allowCreate = true,
 }: TagInputProps) {
   const [inputValue, setInputValue] = useState("");
 
@@ -34,14 +36,16 @@ export function TagInput({
   const isAtLimit = value.length >= maxTags;
 
   const exactMatch = availableTags.find(
-    (tag) => tag.name.toLowerCase() === searchQuery.toLowerCase(),
+    (tag) =>
+      tag.name.toLowerCase() === searchQuery.toLowerCase(),
   );
 
   const isAlreadySelected = (tag: Tag) =>
     value.some(
       (selectedTag) =>
         selectedTag.id === tag.id ||
-        selectedTag.name.toLowerCase() === tag.name.toLowerCase(),
+        selectedTag.name.toLowerCase() ===
+          tag.name.toLowerCase(),
     );
 
   const addTag = (tag: Tag) => {
@@ -55,6 +59,7 @@ export function TagInput({
 
   const handleCreateTag = async () => {
     if (
+      !allowCreate ||
       disabled ||
       isAtLimit ||
       !searchQuery ||
@@ -65,14 +70,18 @@ export function TagInput({
     }
 
     try {
-      const createdTag = await createTagMutation.mutateAsync(searchQuery);
+      const createdTag =
+        await createTagMutation.mutateAsync(searchQuery);
+
       addTag(createdTag);
     } catch {
       // Mutation error is displayed below.
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
     if (event.key !== "Enter") {
       return;
     }
@@ -84,7 +93,9 @@ export function TagInput({
       return;
     }
 
-    void handleCreateTag();
+    if (allowCreate) {
+      void handleCreateTag();
+    }
   };
 
   const removeTag = (tagId: string) => {
@@ -118,12 +129,16 @@ export function TagInput({
       <div className="space-y-2">
         <Input
           value={inputValue}
-          onChange={(event) => setInputValue(event.target.value)}
+          onChange={(event) =>
+            setInputValue(event.target.value)
+          }
           onKeyDown={handleKeyDown}
           placeholder={
             isAtLimit
               ? `Maximum ${maxTags} tags reached`
-              : "Search or create a tag..."
+              : allowCreate
+                ? "Search or create a tag..."
+                : "Search existing tags..."
           }
           disabled={disabled || isAtLimit}
         />
@@ -139,7 +154,8 @@ export function TagInput({
             {tagsQuery.isError && (
               <div className="flex items-center justify-between gap-2 px-2 py-2">
                 <p className="text-sm text-destructive">
-                  {tagsQuery.error.message || "Failed to load tags."}
+                  {tagsQuery.error.message ||
+                    "Failed to load tags."}
                 </p>
 
                 <button
@@ -163,6 +179,7 @@ export function TagInput({
                   className="flex w-full items-center rounded-md px-3 py-2 text-left text-sm hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {tag.name}
+
                   {isAlreadySelected(tag) && (
                     <span className="ml-auto text-xs text-muted-foreground">
                       Added
@@ -179,7 +196,8 @@ export function TagInput({
                 </p>
               )}
 
-            {!tagsQuery.isPending &&
+            {allowCreate &&
+              !tagsQuery.isPending &&
               !tagsQuery.isError &&
               searchQuery &&
               !exactMatch && (
@@ -197,9 +215,10 @@ export function TagInput({
           </div>
         )}
 
-        {createTagMutation.isError && (
+        {allowCreate && createTagMutation.isError && (
           <p className="text-sm text-destructive">
-            {createTagMutation.error.message || "Failed to create tag."}
+            {createTagMutation.error.message ||
+              "Failed to create tag."}
           </p>
         )}
 

@@ -7,6 +7,7 @@ export type PromptListFilters = {
   limit?: number;
   offset?: number;
   categoryId?: string;
+  tagIds?: string[];
   lifecycleStatus?: PromptLifecycleStatus;
   search?: string;
   sortBy?: PromptSortBy;

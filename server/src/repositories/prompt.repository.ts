@@ -4,9 +4,13 @@ import {
   desc,
   eq,
   ilike,
+  inArray,
   isNull,
   or,
-} from "drizzle-orm";import { db } from "../db/db.js";
+} from "drizzle-orm";
+
+import { promptTags } from "../db/schema/prompt-tags.js";
+import { db } from "../db/db.js";
 import { prompts } from "../db/schema/prompts.schema.js";
 
 type DbExecutor = Pick<
@@ -33,6 +37,7 @@ async findMine(
     limit: number;
     offset: number;
     categoryId?: string;
+    tagIds?: string[];
     lifecycleStatus?: "draft" | "active" | "archived";
     search?: string;
     sortBy?: "createdAt" | "updatedAt" | "title";
@@ -47,6 +52,18 @@ async findMine(
   if (options.categoryId) {
     conditions.push(eq(prompts.categoryId, options.categoryId));
   }
+  if (options.tagIds && options.tagIds.length > 0) {
+  const matchingPromptIds = this.database
+    .select({
+      promptId: promptTags.promptId,
+    })
+    .from(promptTags)
+    .where(inArray(promptTags.tagId, options.tagIds));
+
+  conditions.push(
+    inArray(prompts.id, matchingPromptIds),
+  );
+}
 
   if (options.lifecycleStatus) {
     conditions.push(

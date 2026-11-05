@@ -92,6 +92,16 @@ export const getMineQuerySchema = z
       .string()
       .uuid("Category ID must be a valid UUID")
       .optional(),
+    tagIds: z
+  .array(
+    z.string().uuid("Tag ID must be a valid UUID"),
+  )
+  .max(10, "A maximum of 10 tags can be selected")
+  .refine(
+    (tagIds) => new Set(tagIds).size === tagIds.length,
+    "Duplicate tag IDs are not allowed",
+  )
+  .optional(),
 
     lifecycleStatus: z
       .enum(["draft", "active", "archived"])
