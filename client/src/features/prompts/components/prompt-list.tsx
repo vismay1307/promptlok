@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TagInput } from "@/features/taxonomy/components/tag-input";
 import { useCategories } from "@/hooks/use-categories";
+import { X } from "lucide-react";
+
 import type {
   PromptLifecycleStatus,
   PromptSortBy,
@@ -29,9 +31,11 @@ export function PromptList() {
   const [status, setStatus] = useState<
     PromptLifecycleStatus | ""
   >("");
-const [visibility, setVisibility] = useState<
-  "private" | "shared" | "team" | "organization" | "public" | ""
->("");
+
+  const [visibility, setVisibility] = useState<
+    "private" | "shared" | "team" | "organization" | "public" | ""
+  >("");
+
   const [sortBy, setSortBy] =
     useState<PromptSortBy>("createdAt");
 
@@ -60,6 +64,7 @@ const [visibility, setVisibility] = useState<
 
       ...(status ? { lifecycleStatus: status } : {}),
       ...(visibility ? { visibility } : {}),
+
       ...(debouncedSearch
         ? { search: debouncedSearch }
         : {}),
@@ -71,7 +76,8 @@ const [visibility, setVisibility] = useState<
       categoryId,
       selectedTags,
       status,
-      debouncedSearch,visibility,
+      debouncedSearch,
+      visibility,
       sortBy,
       sortOrder,
     ],
@@ -173,6 +179,19 @@ const [visibility, setVisibility] = useState<
           </p>
         </div>
 
+        {/* Background fetching indicator */}
+        {isFetching && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-2 text-xs text-muted-foreground"
+          >
+            <span className="size-3 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground" />
+
+            Updating prompts...
+          </div>
+        )}
+
         {/* Search and filter controls */}
         <div className="grid gap-3 sm:grid-cols-2">
           <Input
@@ -221,29 +240,31 @@ const [visibility, setVisibility] = useState<
             <option value="active">Active</option>
             <option value="archived">Archived</option>
           </select>
-            <select
-  value={visibility}
-  onChange={(event) =>
-    setVisibility(
-      event.target.value as
-        | "private"
-        | "shared"
-        | "team"
-        | "organization"
-        | "public"
-        | "",
-    )
-  }
-  aria-label="Filter by visibility"
-  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
->
-  <option value="">All visibility</option>
-  <option value="private">Private</option>
-  <option value="shared">Shared</option>
-  <option value="team">Team</option>
-  <option value="organization">Organization</option>
-  <option value="public">Public</option>
-</select>
+
+          <select
+            value={visibility}
+            onChange={(event) =>
+              setVisibility(
+                event.target.value as
+                  | "private"
+                  | "shared"
+                  | "team"
+                  | "organization"
+                  | "public"
+                  | "",
+              )
+            }
+            aria-label="Filter by visibility"
+            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option value="">All visibility</option>
+            <option value="private">Private</option>
+            <option value="shared">Shared</option>
+            <option value="team">Team</option>
+            <option value="organization">Organization</option>
+            <option value="public">Public</option>
+          </select>
+
           <select
             value={`${sortBy}:${sortOrder}`}
             onChange={(event) => {
@@ -292,57 +313,114 @@ const [visibility, setVisibility] = useState<
             displayed.
           </p>
         </div>
+
         {/* Active filter chips */}
-{(search.trim() ||
-  categoryId ||
-  selectedTags.length > 0 ||
-  status ||
-  visibility) && (
-  <div className="space-y-2">
-    <p className="text-sm font-medium">
-      Active filters
-    </p>
+        {(search.trim() ||
+          categoryId ||
+          selectedTags.length > 0 ||
+          status ||
+          visibility) && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium">
+              Active filters
+            </p>
 
-    <div className="flex flex-wrap gap-2">
-      {search.trim() && (
-        <span className="rounded-full border bg-secondary px-3 py-1 text-xs font-medium">
-          Search: {search.trim()}
-        </span>
-      )}
+            <div className="flex flex-wrap gap-2">
+              {search.trim() && (
+                <span className="inline-flex items-center gap-2 rounded-full border bg-secondary px-3 py-1 text-xs font-medium">
+                  Search: {search.trim()}
 
-      {categoryId && (
-        <span className="rounded-full border bg-secondary px-3 py-1 text-xs font-medium">
-          Category:{" "}
-          {categories?.find(
-            (category) => category.id === categoryId,
-          )?.name ?? "Selected category"}
-        </span>
-      )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearch("");
+                      setDebouncedSearch("");
+                    }}
+                    aria-label="Remove search filter"
+                    className="rounded-full hover:text-destructive"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              )}
 
-      {selectedTags.map((tag) => (
-        <span
-          key={tag.id}
-          className="rounded-full border bg-secondary px-3 py-1 text-xs font-medium"
-        >
-          Tag: {tag.name}
-        </span>
-      ))}
+              {categoryId && (
+                <span className="inline-flex items-center gap-2 rounded-full border bg-secondary px-3 py-1 text-xs font-medium">
+                  Category:{" "}
+                  {categories?.find(
+                    (category) =>
+                      category.id === categoryId,
+                  )?.name ?? "Selected category"}
 
-      {status && (
-        <span className="rounded-full border bg-secondary px-3 py-1 text-xs font-medium capitalize">
-          Status: {status}
-        </span>
-      )}
+                  <button
+                    type="button"
+                    onClick={() => setCategoryId("")}
+                    aria-label="Remove category filter"
+                    className="rounded-full hover:text-destructive"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              )}
 
-      {visibility && (
-        <span className="rounded-full border bg-secondary px-3 py-1 text-xs font-medium capitalize">
-          Visibility: {visibility}
-        </span>
-      )}
-    </div>
-  </div>
-)}
-        {/* Clear filters */}
+              {selectedTags.map((tag) => (
+                <span
+                  key={tag.id}
+                  className="inline-flex items-center gap-2 rounded-full border bg-secondary px-3 py-1 text-xs font-medium"
+                >
+                  Tag: {tag.name}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedTags((previousTags) =>
+                        previousTags.filter(
+                          (item) => item.id !== tag.id,
+                        ),
+                      )
+                    }
+                    aria-label={`Remove ${tag.name} tag filter`}
+                    className="rounded-full hover:text-destructive"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              ))}
+
+              {status && (
+                <span className="inline-flex items-center gap-2 rounded-full border bg-secondary px-3 py-1 text-xs font-medium capitalize">
+                  Status: {status}
+
+                  <button
+                    type="button"
+                    onClick={() => setStatus("")}
+                    aria-label="Remove status filter"
+                    className="rounded-full hover:text-destructive"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              )}
+
+              {visibility && (
+                <span className="inline-flex items-center gap-2 rounded-full border bg-secondary px-3 py-1 text-xs font-medium capitalize">
+                  Visibility: {visibility}
+
+                  <button
+                    type="button"
+                    onClick={() => setVisibility("")}
+                    aria-label="Remove visibility filter"
+                    className="rounded-full hover:text-destructive"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Clear all filters */}
         {hasActiveFilters && (
           <div className="flex justify-end">
             <Button
@@ -351,7 +429,7 @@ const [visibility, setVisibility] = useState<
               size="sm"
               onClick={clearFilters}
             >
-              Clear filters
+              Clear all filters
             </Button>
           </div>
         )}
@@ -362,13 +440,13 @@ const [visibility, setVisibility] = useState<
         <div className="rounded-xl border border-dashed border-border px-6 py-12 text-center">
           <h3 className="text-lg font-semibold">
             {hasActiveFilters
-              ? "No matching prompts"
+              ? "No prompts found"
               : "Your library is empty"}
           </h3>
 
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
             {hasActiveFilters
-              ? "Try changing your search or filters."
+              ? "We couldn't find any prompts matching your current search and filters. Try removing some filters or adjusting your search."
               : "You haven't created any prompts yet. Create your first prompt to start building your personal library."}
           </p>
 
@@ -379,7 +457,7 @@ const [visibility, setVisibility] = useState<
               className="mt-4"
               onClick={clearFilters}
             >
-              Clear filters
+              Clear all filters
             </Button>
           )}
         </div>
