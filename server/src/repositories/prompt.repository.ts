@@ -39,6 +39,7 @@ async findMine(
     categoryId?: string;
     tagIds?: string[];
     lifecycleStatus?: "draft" | "active" | "archived";
+    visibility?: "private" | "shared" | "team" | "organization" | "public";
     search?: string;
     sortBy?: "createdAt" | "updatedAt" | "title";
     sortOrder?: "asc" | "desc";
@@ -70,6 +71,11 @@ async findMine(
       eq(prompts.lifecycleStatus, options.lifecycleStatus),
     );
   }
+  if (options.visibility) {
+  conditions.push(
+    eq(prompts.visibility, options.visibility),
+  );
+}
 
   if (options.search) {
     const searchTerm = `%${options.search}%`;

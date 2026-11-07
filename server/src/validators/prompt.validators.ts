@@ -106,7 +106,9 @@ export const getMineQuerySchema = z
     lifecycleStatus: z
       .enum(["draft", "active", "archived"])
       .optional(),
-
+    visibility: z
+    .enum(["private", "shared", "team", "organization", "public"])
+    .optional(),
     search: z
       .string()
       .trim()

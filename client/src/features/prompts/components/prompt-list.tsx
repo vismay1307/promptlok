@@ -29,7 +29,9 @@ export function PromptList() {
   const [status, setStatus] = useState<
     PromptLifecycleStatus | ""
   >("");
-
+const [visibility, setVisibility] = useState<
+  "private" | "shared" | "team" | "organization" | "public" | ""
+>("");
   const [sortBy, setSortBy] =
     useState<PromptSortBy>("createdAt");
 
@@ -57,7 +59,7 @@ export function PromptList() {
         : {}),
 
       ...(status ? { lifecycleStatus: status } : {}),
-
+      ...(visibility ? { visibility } : {}),
       ...(debouncedSearch
         ? { search: debouncedSearch }
         : {}),
@@ -69,7 +71,7 @@ export function PromptList() {
       categoryId,
       selectedTags,
       status,
-      debouncedSearch,
+      debouncedSearch,visibility,
       sortBy,
       sortOrder,
     ],
@@ -94,11 +96,13 @@ export function PromptList() {
       categoryId ||
       selectedTags.length > 0 ||
       status ||
+      visibility ||
       sortBy !== "createdAt" ||
       sortOrder !== "desc",
   );
 
   function clearFilters() {
+    setVisibility("");
     setSearch("");
     setDebouncedSearch("");
     setCategoryId("");
@@ -217,7 +221,29 @@ export function PromptList() {
             <option value="active">Active</option>
             <option value="archived">Archived</option>
           </select>
-
+            <select
+  value={visibility}
+  onChange={(event) =>
+    setVisibility(
+      event.target.value as
+        | "private"
+        | "shared"
+        | "team"
+        | "organization"
+        | "public"
+        | "",
+    )
+  }
+  aria-label="Filter by visibility"
+  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+>
+  <option value="">All visibility</option>
+  <option value="private">Private</option>
+  <option value="shared">Shared</option>
+  <option value="team">Team</option>
+  <option value="organization">Organization</option>
+  <option value="public">Public</option>
+</select>
           <select
             value={`${sortBy}:${sortOrder}`}
             onChange={(event) => {
@@ -266,7 +292,56 @@ export function PromptList() {
             displayed.
           </p>
         </div>
+        {/* Active filter chips */}
+{(search.trim() ||
+  categoryId ||
+  selectedTags.length > 0 ||
+  status ||
+  visibility) && (
+  <div className="space-y-2">
+    <p className="text-sm font-medium">
+      Active filters
+    </p>
 
+    <div className="flex flex-wrap gap-2">
+      {search.trim() && (
+        <span className="rounded-full border bg-secondary px-3 py-1 text-xs font-medium">
+          Search: {search.trim()}
+        </span>
+      )}
+
+      {categoryId && (
+        <span className="rounded-full border bg-secondary px-3 py-1 text-xs font-medium">
+          Category:{" "}
+          {categories?.find(
+            (category) => category.id === categoryId,
+          )?.name ?? "Selected category"}
+        </span>
+      )}
+
+      {selectedTags.map((tag) => (
+        <span
+          key={tag.id}
+          className="rounded-full border bg-secondary px-3 py-1 text-xs font-medium"
+        >
+          Tag: {tag.name}
+        </span>
+      ))}
+
+      {status && (
+        <span className="rounded-full border bg-secondary px-3 py-1 text-xs font-medium capitalize">
+          Status: {status}
+        </span>
+      )}
+
+      {visibility && (
+        <span className="rounded-full border bg-secondary px-3 py-1 text-xs font-medium capitalize">
+          Visibility: {visibility}
+        </span>
+      )}
+    </div>
+  </div>
+)}
         {/* Clear filters */}
         {hasActiveFilters && (
           <div className="flex justify-end">
