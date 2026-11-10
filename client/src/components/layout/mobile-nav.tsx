@@ -5,8 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sparkles, Menu } from "lucide-react";
 
-import { appNavItems } from "@/components/layout/nav-config";
-import { Button } from "@/components/ui/button";
+import {
+  appNavItems,
+  isNavItemActive,
+} from "@/components/layout/nav-config";import { Button } from "@/components/ui/button";
 
 import {
   Sheet,

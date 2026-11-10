@@ -4,8 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sparkles } from "lucide-react";
 
-import { appNavItems } from "@/components/layout/nav-config";
-
+import {
+  appNavItems,
+  isNavItemActive,
+} from "@/components/layout/nav-config";
 export function AppSidebar() {
   const pathname = usePathname();
 
@@ -40,10 +42,7 @@ export function AppSidebar() {
           {appNavItems.map((item) => {
             const Icon = item.icon;
 
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/dashboard" &&
-                pathname.startsWith(`${item.href}/`));
+            const isActive = isNavItemActive(pathname, item);
 
             return (
               <Link

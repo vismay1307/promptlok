@@ -5,7 +5,7 @@ import { useId, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -33,7 +33,7 @@ export function CreatePromptForm() {
   const createPromptMutation = useCreatePrompt();
 
   const formId = useId();
-
+  const router = useRouter();
   const categoryId = `${formId}-category`;
   const categoryErrorId = `${formId}-category-error`;
   const tagsId = `${formId}-tags`;
@@ -72,6 +72,8 @@ export function CreatePromptForm() {
 
       reset();
       setSelectedTags([]);
+
+      router.push("/vault");
     } catch (error) {
       toast.error(
         error instanceof Error

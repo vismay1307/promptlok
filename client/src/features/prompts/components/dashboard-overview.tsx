@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -37,15 +38,13 @@ export function DashboardOverview() {
           </p>
         </div>
 
-        
-          <Link
-  href="/vault"
-  className="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
->
-  <Plus className="mr-2 size-4" />
-  New Prompt
-</Link>
-        
+        <Link
+          href="/vault/new"
+          className="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <Plus className="mr-2 size-4" />
+          New Prompt
+        </Link>
       </div>
 
       {/* Recent prompts */}
@@ -59,12 +58,12 @@ export function DashboardOverview() {
           </div>
 
           <Link
-  href="/vault"
-  className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
->
-  View all prompts
-  <ArrowRight className="ml-2 size-4" />
-</Link>
+            href="/vault"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            View all prompts
+            <ArrowRight className="ml-2 size-4" />
+          </Link>
         </div>
 
         {/* Loading state */}
@@ -115,16 +114,16 @@ export function DashboardOverview() {
 
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
               You haven&apos;t created any prompts yet.
-              to start building your personal library.
+              Start building your personal library.
             </p>
 
             <Link
-  href="/vault"
-  className="mt-5 inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
->
-  <Plus className="mr-2 size-4" />
-  Create your first prompt
-</Link>
+              href="/vault/new"
+              className="mt-5 inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <Plus className="mr-2 size-4" />
+              Create your first prompt
+            </Link>
           </div>
         )}
 
