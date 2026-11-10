@@ -174,54 +174,69 @@ export function EditPromptForm({
           </div>
 
           {/* Category */}
-          <div className="space-y-2">
-            <Label>Category</Label>
+<div className="space-y-2">
+  <Label htmlFor="edit-category">Category</Label>
 
-            <Controller
-              name="categoryId"
-              control={control}
-              render={({ field }) => (
-                <CategorySelect
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  disabled={isPending}
-                />
-              )}
-            />
+  <Controller
+    name="categoryId"
+    control={control}
+    render={({ field }) => (
+      <CategorySelect
+        id="edit-category"
+        value={field.value}
+        onValueChange={field.onChange}
+        disabled={isPending}
+        aria-invalid={!!errors.categoryId}
+        aria-describedby={
+          errors.categoryId ? "edit-category-error" : undefined
+        }
+      />
+    )}
+  />
 
-            {errors.categoryId && (
-              <p className="text-sm text-destructive">
-                {errors.categoryId.message}
-              </p>
-            )}
-          </div>
+  {errors.categoryId && (
+    <p
+      id="edit-category-error"
+      className="text-sm text-destructive"
+    >
+      {errors.categoryId.message}
+    </p>
+  )}
+</div>
 
           {/* Tags */}
-          <div className="space-y-2">
-            <Label>Tags</Label>
+<div className="space-y-2">
+  <Label htmlFor="edit-tags">Tags</Label>
 
-            <TagInput
-              value={selectedTags}
-              onChange={(tags) => {
-                setSelectedTags(tags);
+  <TagInput
+    id="edit-tags"
+    value={selectedTags}
+    onChange={(tags) => {
+      setSelectedTags(tags);
 
-                setValue(
-                  "tagIds",
-                  tags.map((tag) => tag.id),
-                  { shouldValidate: true },
-                );
-              }}
-              disabled={isPending}
-              maxTags={10}
-            />
+      setValue(
+        "tagIds",
+        tags.map((tag) => tag.id),
+        { shouldValidate: true },
+      );
+    }}
+    disabled={isPending}
+    maxTags={10}
+    aria-invalid={!!errors.tagIds}
+    aria-describedby={
+      errors.tagIds ? "edit-tags-error" : undefined
+    }
+  />
 
-            {errors.tagIds && (
-              <p className="text-sm text-destructive">
-                {errors.tagIds.message}
-              </p>
-            )}
-          </div>
-
+  {errors.tagIds && (
+    <p
+      id="edit-tags-error"
+      className="text-sm text-destructive"
+    >
+      {errors.tagIds.message}
+    </p>
+  )}
+</div>
           {/* AI Model Metadata */}
           <div className="space-y-2">
             <Label htmlFor="edit-aiModelMetadata">

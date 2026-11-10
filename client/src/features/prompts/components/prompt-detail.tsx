@@ -2,9 +2,13 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+
 import { VersionHistory } from "./version-history";
 import { EditPromptForm } from "./edit-prompt-form";
+import { DeletePromptDialog } from "./delete-prompt-dialog";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+
 import { useCategories } from "@/hooks/use-categories";
 import { usePromptDetail } from "../hooks/use-prompt-detail";
 
@@ -24,6 +29,9 @@ type PromptDetailProps = {
 export function PromptDetail({ promptId }: PromptDetailProps) {
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const router = useRouter();
 
   const {
     data: prompt,
@@ -191,8 +199,20 @@ export function PromptDetail({ promptId }: PromptDetailProps) {
             </Button>
           )}
 
+          {prompt.canEdit && (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
+              Delete Prompt
+            </Button>
+          )}
+
           <span className="text-sm text-muted-foreground">
-            {prompt.canEdit ? "You can edit this prompt" : "View only"}
+            {prompt.canEdit
+              ? "You can edit this prompt"
+              : "View only"}
           </span>
         </div>
       </div>
@@ -301,6 +321,17 @@ export function PromptDetail({ promptId }: PromptDetailProps) {
         currentVersion={currentVersion}
         canEdit={prompt.canEdit}
       />
+
+      {/* Delete Prompt Confirmation Dialog */}
+      {prompt.canEdit && (
+        <DeletePromptDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          promptId={promptId}
+          promptTitle={prompt.title}
+          onDeleted={() => router.replace("/vault")}
+        />
+      )}
     </section>
   );
 }

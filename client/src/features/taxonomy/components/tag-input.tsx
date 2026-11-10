@@ -11,19 +11,25 @@ import { useTags } from "@/hooks/use-tags";
 import type { Tag } from "@/lib/types/taxonomy";
 
 type TagInputProps = {
+  id: string;
   value: Tag[];
   onChange: (tags: Tag[]) => void;
   disabled?: boolean;
   maxTags?: number;
   allowCreate?: boolean;
+  "aria-invalid"?: boolean;
+  "aria-describedby"?: string;
 };
 
 export function TagInput({
+  id,
   value,
   onChange,
   disabled = false,
   maxTags = 10,
   allowCreate = true,
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": ariaDescribedBy,
 }: TagInputProps) {
   const [inputValue, setInputValue] = useState("");
 
@@ -102,6 +108,15 @@ export function TagInput({
     onChange(value.filter((tag) => tag.id !== tagId));
   };
 
+  const createErrorId = `${id}-create-error`;
+
+  const describedBy = [
+    ariaDescribedBy,
+    createTagMutation.isError ? createErrorId : undefined,
+  ]
+    .filter(Boolean)
+    .join(" ") || undefined;
+
   return (
     <div className="w-full space-y-3">
       <div className="flex flex-wrap gap-2">
@@ -118,9 +133,9 @@ export function TagInput({
               onClick={() => removeTag(tag.id)}
               disabled={disabled}
               aria-label={`Remove ${tag.name}`}
-              className="rounded-full outline-none hover:text-destructive disabled:pointer-events-none"
+              className="rounded-full outline-none hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none"
             >
-              <X className="size-3" />
+              <X className="size-3" aria-hidden="true" />
             </button>
           </Badge>
         ))}
@@ -128,6 +143,7 @@ export function TagInput({
 
       <div className="space-y-2">
         <Input
+          id={id}
           value={inputValue}
           onChange={(event) =>
             setInputValue(event.target.value)
@@ -141,19 +157,29 @@ export function TagInput({
                 : "Search existing tags..."
           }
           disabled={disabled || isAtLimit}
+          aria-invalid={ariaInvalid || createTagMutation.isError}
+          aria-describedby={describedBy}
+          aria-controls={searchQuery && !isAtLimit ? `${id}-suggestions` : undefined}
+          aria-expanded={!!searchQuery && !isAtLimit}
         />
 
         {searchQuery && !isAtLimit && (
-          <div className="rounded-lg border border-border bg-popover p-2">
+          <div
+            id={`${id}-suggestions`}
+            className="rounded-lg border border-border bg-popover p-2"
+          >
             {tagsQuery.isPending && (
-              <p className="px-2 py-2 text-sm text-muted-foreground">
+              <p
+                className="px-2 py-2 text-sm text-muted-foreground"
+                role="status"
+              >
                 Searching tags...
               </p>
             )}
 
             {tagsQuery.isError && (
               <div className="flex items-center justify-between gap-2 px-2 py-2">
-                <p className="text-sm text-destructive">
+                <p className="text-sm text-destructive" role="alert">
                   {tagsQuery.error.message ||
                     "Failed to load tags."}
                 </p>
@@ -176,7 +202,7 @@ export function TagInput({
                   type="button"
                   disabled={isAlreadySelected(tag)}
                   onClick={() => addTag(tag)}
-                  className="flex w-full items-center rounded-md px-3 py-2 text-left text-sm hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex w-full items-center rounded-md px-3 py-2 text-left text-sm outline-none hover:bg-accent focus-visible:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {tag.name}
 
@@ -191,7 +217,10 @@ export function TagInput({
             {!tagsQuery.isPending &&
               !tagsQuery.isError &&
               availableTags.length === 0 && (
-                <p className="px-2 py-2 text-sm text-muted-foreground">
+                <p
+                  className="px-2 py-2 text-sm text-muted-foreground"
+                  role="status"
+                >
                   No matching tags found.
                 </p>
               )}
@@ -205,7 +234,7 @@ export function TagInput({
                   type="button"
                   onClick={() => void handleCreateTag()}
                   disabled={createTagMutation.isPending}
-                  className="mt-1 w-full rounded-md border-t border-border px-3 py-2 text-left text-sm font-medium text-primary hover:bg-accent disabled:opacity-50"
+                  className="mt-1 w-full rounded-md border-t border-border px-3 py-2 text-left text-sm font-medium text-primary outline-none hover:bg-accent focus-visible:bg-accent disabled:opacity-50"
                 >
                   {createTagMutation.isPending
                     ? "Creating tag..."
@@ -215,14 +244,18 @@ export function TagInput({
           </div>
         )}
 
-        {allowCreate && createTagMutation.isError && (
-          <p className="text-sm text-destructive">
+        {createTagMutation.isError && (
+          <p
+            id={createErrorId}
+            className="text-sm text-destructive"
+            role="alert"
+          >
             {createTagMutation.error.message ||
               "Failed to create tag."}
           </p>
         )}
 
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground" aria-live="polite">
           {value.length}/{maxTags} tags selected
         </p>
       </div>

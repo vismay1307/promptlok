@@ -296,23 +296,28 @@ export function PromptList() {
         </div>
 
         {/* Tag filter */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">
-            Filter by tags
-          </label>
+        {/* Tag filter */}
+<div className="space-y-2">
+  <label
+    htmlFor="prompt-filter-tags"
+    className="text-sm font-medium"
+  >
+    Filter by tags
+  </label>
 
-          <TagInput
-            value={selectedTags}
-            onChange={setSelectedTags}
-            allowCreate={false}
-            maxTags={10}
-          />
+  <TagInput
+    id="prompt-filter-tags"
+    value={selectedTags}
+    onChange={setSelectedTags}
+    allowCreate={false}
+    maxTags={10}
+  />
 
-          <p className="text-xs text-muted-foreground">
-            Prompts matching any selected tag will be
-            displayed.
-          </p>
-        </div>
+  <p className="text-xs text-muted-foreground">
+    Prompts matching any selected tag will be
+    displayed.
+  </p>
+</div>
 
         {/* Active filter chips */}
         {(search.trim() ||

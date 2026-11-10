@@ -20,3 +20,9 @@ export async function updatePrompt(
 
   return response.data.data;
 }
+export async function deletePrompt(
+  api: AxiosInstance,
+  promptId: string,
+): Promise<void> {
+  await api.delete<void>(`/prompts/${promptId}`);
+}

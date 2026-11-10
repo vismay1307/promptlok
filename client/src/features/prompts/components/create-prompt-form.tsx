@@ -1,13 +1,19 @@
 
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +31,13 @@ import {
 export function CreatePromptForm() {
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const createPromptMutation = useCreatePrompt();
+
+  const formId = useId();
+
+  const categoryId = `${formId}-category`;
+  const categoryErrorId = `${formId}-category-error`;
+  const tagsId = `${formId}-tags`;
+  const tagsErrorId = `${formId}-tags-error`;
 
   const {
     register,
@@ -80,21 +93,30 @@ export function CreatePromptForm() {
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-6"
+        >
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
+            <Label htmlFor={`${formId}-title`}>Title *</Label>
 
             <Input
-              id="title"
+              id={`${formId}-title`}
               placeholder="e.g. Blog post generator"
               aria-invalid={!!errors.title}
+              aria-describedby={
+                errors.title ? `${formId}-title-error` : undefined
+              }
               disabled={isPending}
               {...register("title")}
             />
 
             {errors.title && (
-              <p className="text-sm text-destructive">
+              <p
+                id={`${formId}-title-error`}
+                className="text-sm text-destructive"
+              >
                 {errors.title.message}
               </p>
             )}
@@ -102,19 +124,29 @@ export function CreatePromptForm() {
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor={`${formId}-description`}>
+              Description
+            </Label>
 
             <Textarea
-              id="description"
+              id={`${formId}-description`}
               placeholder="Briefly describe what this prompt does..."
               rows={3}
               aria-invalid={!!errors.description}
+              aria-describedby={
+                errors.description
+                  ? `${formId}-description-error`
+                  : undefined
+              }
               disabled={isPending}
               {...register("description")}
             />
 
             {errors.description && (
-              <p className="text-sm text-destructive">
+              <p
+                id={`${formId}-description-error`}
+                className="text-sm text-destructive"
+              >
                 {errors.description.message}
               </p>
             )}
@@ -122,19 +154,27 @@ export function CreatePromptForm() {
 
           {/* Prompt Content */}
           <div className="space-y-2">
-            <Label htmlFor="content">Prompt Content *</Label>
+            <Label htmlFor={`${formId}-content`}>
+              Prompt Content *
+            </Label>
 
             <Textarea
-              id="content"
+              id={`${formId}-content`}
               placeholder="Write your prompt instructions here..."
               rows={8}
               aria-invalid={!!errors.content}
+              aria-describedby={
+                errors.content ? `${formId}-content-error` : undefined
+              }
               disabled={isPending}
               {...register("content")}
             />
 
             {errors.content && (
-              <p className="text-sm text-destructive">
+              <p
+                id={`${formId}-content-error`}
+                className="text-sm text-destructive"
+              >
                 {errors.content.message}
               </p>
             )}
@@ -142,22 +182,30 @@ export function CreatePromptForm() {
 
           {/* Category */}
           <div className="space-y-2">
-            <Label>Category *</Label>
+            <Label htmlFor={categoryId}>Category *</Label>
 
             <Controller
               name="categoryId"
               control={control}
               render={({ field }) => (
                 <CategorySelect
+                  id={categoryId}
                   value={field.value}
                   onValueChange={field.onChange}
                   disabled={isPending}
+                  aria-invalid={!!errors.categoryId}
+                  aria-describedby={
+                    errors.categoryId ? categoryErrorId : undefined
+                  }
                 />
               )}
             />
 
             {errors.categoryId && (
-              <p className="text-sm text-destructive">
+              <p
+                id={categoryErrorId}
+                className="text-sm text-destructive"
+              >
                 {errors.categoryId.message}
               </p>
             )}
@@ -165,9 +213,10 @@ export function CreatePromptForm() {
 
           {/* Tags */}
           <div className="space-y-2">
-            <Label>Tags</Label>
+            <Label htmlFor={tagsId}>Tags</Label>
 
             <TagInput
+              id={tagsId}
               value={selectedTags}
               onChange={(tags) => {
                 setSelectedTags(tags);
@@ -180,10 +229,17 @@ export function CreatePromptForm() {
               }}
               disabled={isPending}
               maxTags={10}
+              aria-invalid={!!errors.tagIds}
+              aria-describedby={
+                errors.tagIds ? tagsErrorId : undefined
+              }
             />
 
             {errors.tagIds && (
-              <p className="text-sm text-destructive">
+              <p
+                id={tagsErrorId}
+                className="text-sm text-destructive"
+              >
                 {errors.tagIds.message}
               </p>
             )}
@@ -191,20 +247,28 @@ export function CreatePromptForm() {
 
           {/* AI Model Metadata */}
           <div className="space-y-2">
-            <Label htmlFor="aiModelMetadata">
+            <Label htmlFor={`${formId}-aiModelMetadata`}>
               AI Model (Optional)
             </Label>
 
             <Input
-              id="aiModelMetadata"
+              id={`${formId}-aiModelMetadata`}
               placeholder="e.g. GPT-5, Gemini, Claude"
               aria-invalid={!!errors.aiModelMetadata}
+              aria-describedby={
+                errors.aiModelMetadata
+                  ? `${formId}-ai-model-error`
+                  : undefined
+              }
               disabled={isPending}
               {...register("aiModelMetadata")}
             />
 
             {errors.aiModelMetadata && (
-              <p className="text-sm text-destructive">
+              <p
+                id={`${formId}-ai-model-error`}
+                className="text-sm text-destructive"
+              >
                 {errors.aiModelMetadata.message}
               </p>
             )}
