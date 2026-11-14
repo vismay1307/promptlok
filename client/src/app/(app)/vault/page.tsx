@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/common/page-header";
 import { PromptList } from "@/features/prompts/components/prompt-list";
 import { requireAuth } from "@/lib/auth/require-auth";

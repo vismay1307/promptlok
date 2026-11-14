@@ -1,14 +1,18 @@
+
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 
 import {
   appNavItems,
   isNavItemActive,
-} from "@/components/layout/nav-config";import { Button } from "@/components/ui/button";
+} from "@/components/layout/nav-config";
+
+import { Button } from "@/components/ui/button";
 
 import {
   Sheet,
@@ -40,32 +44,43 @@ export function MobileNav() {
 
       <SheetContent side="left" className="w-[280px] max-w-[85vw] p-0">
         <SheetHeader className="border-b border-sidebar-border px-6 py-5 text-left">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-yellow-400 text-black">
-              <Sparkles size={22} />
-            </div>
+          <div className="flex items-center">
+            <Image
+              src="/logo/promptlok-logo-light.png"
+              alt="PromptLok"
+              width={949}
+              height={195}
+              priority
+              className="h-9 w-auto object-contain dark:hidden"
+            />
 
-            <div>
-              <SheetTitle>PromptLok</SheetTitle>
-              <SheetDescription>
-                AI Prompt Workspace
-              </SheetDescription>
-            </div>
+            <Image
+              src="/logo/promptlok-logo-dark.png"
+              alt="PromptLok"
+              width={946}
+              height={198}
+              priority
+              className="hidden h-9 w-auto object-contain dark:block"
+            />
           </div>
+
+          <SheetTitle className="sr-only">PromptLok</SheetTitle>
+          <SheetDescription className="sr-only">
+            AI Prompt Workspace
+          </SheetDescription>
         </SheetHeader>
 
-        <nav aria-label="Mobile navigation" className="space-y-2 p-4">
+        <nav
+          aria-label="Mobile navigation"
+          className="space-y-2 p-4"
+        >
           <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Workspace
           </p>
 
           {appNavItems.map((item) => {
             const Icon = item.icon;
-
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/dashboard" &&
-                pathname.startsWith(`${item.href}/`));
+            const isActive = isNavItemActive(pathname, item);
 
             return (
               <Link
@@ -74,10 +89,11 @@ export function MobileNav() {
                 onClick={() => setOpen(false)}
                 aria-current={isActive ? "page" : undefined}
                 className={[
-                  "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "flex items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-sm font-medium",
+                  "transition-colors duration-150",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
                   isActive
-                    ? "bg-primary text-primary-foreground"
+                    ? "border-sidebar-accent bg-sidebar-accent text-sidebar-accent-foreground"
                     : "text-foreground hover:bg-muted",
                 ].join(" ")}
               >

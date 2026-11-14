@@ -187,14 +187,14 @@ export default function DesignSystemPage() {
         {/* Color tokens */}
         <Section
           title="Color Palette"
-          description="Cream light mode and black/gray dark mode with blue, orange and yellow accents."
+          description="Cream light mode and black/gray dark mode with orange and yellow accents."
         >
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {[
               { name: "Background", color: "bg-background", border: true },
               { name: "Card", color: "bg-card", border: true },
               { name: "Muted", color: "bg-muted", border: true },
-              { name: "Primary Blue", color: "bg-blue-600" },
+              { name: "Primary Orange", color: "bg-primary" },
               { name: "Orange", color: "bg-orange-500" },
               { name: "Yellow", color: "bg-yellow-400" },
             ].map((item) => (

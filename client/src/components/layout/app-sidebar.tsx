@@ -1,32 +1,39 @@
+
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles } from "lucide-react";
 
 import {
   appNavItems,
   isNavItemActive,
 } from "@/components/layout/nav-config";
+
 export function AppSidebar() {
   const pathname = usePathname();
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
       {/* Brand */}
-      <div className="flex h-20 items-center gap-3 border-b border-sidebar-border px-6">
-        <div className="flex size-10 items-center justify-center rounded-xl bg-yellow-400 text-black">
-          <Sparkles size={22} />
-        </div>
+      <div className="flex h-20 items-center border-b border-sidebar-border px-6">
+        <Image
+          src="/logo/promptlok-logo-light.png"
+          alt="PromptLok"
+          width={949}
+          height={195}
+          priority
+          className="h-9 w-auto object-contain dark:hidden"
+        />
 
-        <div>
-          <h1 className="text-lg font-bold tracking-tight">
-            PromptLok
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            AI Prompt Workspace
-          </p>
-        </div>
+        <Image
+          src="/logo/promptlok-logo-dark.png"
+          alt="PromptLok"
+          width={946}
+          height={198}
+          priority
+          className="hidden h-9 w-auto object-contain dark:block"
+        />
       </div>
 
       {/* Navigation */}
@@ -41,7 +48,6 @@ export function AppSidebar() {
 
           {appNavItems.map((item) => {
             const Icon = item.icon;
-
             const isActive = isNavItemActive(pathname, item);
 
             return (
