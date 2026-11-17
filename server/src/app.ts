@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type Express } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { clerkMiddleware } from "@clerk/express";
@@ -7,7 +7,7 @@ import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import apiRouter from "./routes/index.routes.js";
 
-const app = express();
+const app: Express = express();
 app.set("query parser", "extended");
 app.use(
   cors({

@@ -1,5 +1,5 @@
 
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 
 import categoryRoutes from "./category.routes.js";
 import tagRoutes from "./tag.routes.js";
@@ -8,7 +8,7 @@ import authTestRouter from "./auth-test.routes.js";
 import promptRouter from "./prompt.routes.js";
 import { env } from "../config/env.js";
 
-const apiRouter = Router();
+const apiRouter: ExpressRouter = Router();
 
 apiRouter.use("/categories", categoryRoutes);
 apiRouter.use("/tags", tagRoutes);

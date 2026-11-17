@@ -1,5 +1,4 @@
-import { Router } from "express";
-
+import { Router, type Router as ExpressRouter } from "express";
 import {
   getCurrentUser,
 } from "../controllers/auth.controller.js";
@@ -12,7 +11,7 @@ import {
   asyncHandler,
 } from "../utils/AsyncHandler.js";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.use(requireAuth);
 

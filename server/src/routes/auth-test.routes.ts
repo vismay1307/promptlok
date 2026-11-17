@@ -1,5 +1,4 @@
-import { Router } from "express";
-
+import { Router, type Router as ExpressRouter } from "express";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { requireRole } from "../middleware/role.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
@@ -9,7 +8,7 @@ import { testQuerySchema } from "../db/schema/auth.schema.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.get("/test", requireAuth, (_req, res) => {
   return res.status(200).json(

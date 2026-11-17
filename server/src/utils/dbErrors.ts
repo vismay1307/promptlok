@@ -1,3 +1,4 @@
+
 import { ApiError } from "./ApiError.js";
 
 export function mapDatabaseError(error: unknown): never {
@@ -25,6 +26,14 @@ export function mapDatabaseError(error: unknown): never {
         409,
         "UNIQUE_VIOLATION",
         "Resource already exists",
+      );
+    }
+
+    if (databaseError.code === "23514") {
+      throw new ApiError(
+        400,
+        "CHECK_CONSTRAINT_VIOLATION",
+        "The submitted data violates a database constraint",
       );
     }
   }

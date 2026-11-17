@@ -1,5 +1,5 @@
 
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 import { createTag, searchTags } from "../controllers/tag.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
@@ -8,7 +8,7 @@ import {
   searchTagsSchema,
 } from "../validators/tag.validator.js";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.get(
   "/",
