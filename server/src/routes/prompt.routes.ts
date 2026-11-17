@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 
 import { PromptController } from "../controllers/prompt.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
@@ -13,7 +13,7 @@ import {
   promptVersionParamSchema
 } from "../validators/prompt.validators.js";
 
-const promptRouter = Router();
+const promptRouter: ExpressRouter = Router();
 
 promptRouter.post(
   "/",
