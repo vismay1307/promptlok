@@ -1,0 +1,2 @@
+ALTER TABLE "prompt_requests" ADD COLUMN "search_vector" "tsvector" GENERATED ALWAYS AS (to_tsvector('simple', title || ' ' || description)) STORED;--> statement-breakpoint
+CREATE INDEX "prompt_requests_search_vector_idx" ON "prompt_requests" USING gin ("search_vector");

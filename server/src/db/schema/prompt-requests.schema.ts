@@ -8,12 +8,20 @@ import {
   timestamp,
   index,
   check,
+  customType,
 } from "drizzle-orm/pg-core";
 
 import { sql } from "drizzle-orm";
 
 import { users } from "./users.schema.js";
 import { promptCategories } from "./categories.schema.js";
+
+const tsvector = customType<{
+  data: string;
+  driverData: string;
+}>({
+  dataType: () => "tsvector",
+});
 
 export const requestStatusEnum = pgEnum("request_status", [
   "open",
@@ -52,8 +60,9 @@ export const promptRequests = pgTable(
     status: requestStatusEnum("status")
       .notNull()
       .default("open"),
-// Circular composite FK to prompt_request_responses is managed
-// in the SQL migration.
+
+    // Circular composite FK to prompt_request_responses is managed
+    // in the SQL migration.
     acceptedResponseId: uuid("accepted_response_id"),
 
     createdAt: timestamp("created_at", {
@@ -71,6 +80,10 @@ export const promptRequests = pgTable(
     deletedAt: timestamp("deleted_at", {
       withTimezone: true,
     }),
+
+    searchVector: tsvector("search_vector").generatedAlwaysAs(
+  sql`to_tsvector('simple', title || ' ' || description)`,
+),
   },
   (table) => [
     check(
@@ -87,5 +100,8 @@ export const promptRequests = pgTable(
     index("prompt_requests_active_requester_created_idx")
       .on(table.requesterId, table.createdAt)
       .where(sql`${table.deletedAt} IS NULL`),
+
+    index("prompt_requests_search_vector_idx")
+      .using("gin", table.searchVector),
   ],
 );

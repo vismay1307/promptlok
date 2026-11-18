@@ -7,14 +7,14 @@ import authRouter from "./auth.routes.js";
 import authTestRouter from "./auth-test.routes.js";
 import promptRouter from "./prompt.routes.js";
 import { env } from "../config/env.js";
-
+import requestRouter from "./request.routes.js";
 const apiRouter: ExpressRouter = Router();
 
 apiRouter.use("/categories", categoryRoutes);
 apiRouter.use("/tags", tagRoutes);
 apiRouter.use("/auth", authRouter);
 apiRouter.use("/prompts", promptRouter);
-
+apiRouter.use("/requests", requestRouter);
 if (env.NODE_ENV !== "production") {
   apiRouter.use("/auth-test", authTestRouter);
 }
