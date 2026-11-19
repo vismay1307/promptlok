@@ -8,6 +8,7 @@ import { validate } from "../middleware/validate.middleware.js";
 
 import {
   createRequestSchema,
+  updateRequestSchema,
   requestIdParamSchema,
   requestListQuerySchema,
 } from "../validators/request.validators.js";
@@ -56,6 +57,40 @@ requestRouter.get(
     params: requestIdParamSchema,
   }),
   RequestController.getById,
+);
+
+// Update request
+requestRouter.patch(
+  "/:id",
+  requireAuth,
+  requireLocalUser,
+  validate({
+    params: requestIdParamSchema,
+    body: updateRequestSchema,
+  }),
+  RequestController.update,
+);
+
+// Close request
+requestRouter.patch(
+  "/:id/close",
+  requireAuth,
+  requireLocalUser,
+  validate({
+    params: requestIdParamSchema,
+  }),
+  RequestController.close,
+);
+
+// Soft delete request
+requestRouter.delete(
+  "/:id",
+  requireAuth,
+  requireLocalUser,
+  validate({
+    params: requestIdParamSchema,
+  }),
+  RequestController.remove,
 );
 
 export default requestRouter;
