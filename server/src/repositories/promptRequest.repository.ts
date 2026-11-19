@@ -18,7 +18,7 @@ import { promptCategories } from "../db/schema/categories.schema.js";
 import { users } from "../db/schema/users.schema.js";
 import type { RequestListQuery } from "../validators/request.validators.js";
 
-type DbExecutor = Pick<typeof db, "select" | "insert">;
+type DbExecutor = Pick<typeof db, "select" | "insert" | "update">;
 type RequestFilters = RequestListQuery & { requesterId?: string };
 
 export class PromptRequestRepository {
@@ -38,7 +38,76 @@ export class PromptRequestRepository {
 
     return result[0] ?? null;
   }
+    async updateOpen(
+    requestId: string,
+    requesterId: string,
+    data: {
+      title?: string;
+      description?: string;
+      context?: string | null;
+      categoryId?: string;
+    },
+  ) {
+    const result = await this.executor
+      .update(promptRequests)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(promptRequests.id, requestId),
+          eq(promptRequests.requesterId, requesterId),
+          eq(promptRequests.status, "open"),
+          isNull(promptRequests.deletedAt),
+        ),
+      )
+      .returning({ id: promptRequests.id });
 
+    return result[0] ?? null;
+  }
+
+  async closeOpen(requestId: string, requesterId: string) {
+    const result = await this.executor
+      .update(promptRequests)
+      .set({
+        status: "closed",
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(promptRequests.id, requestId),
+          eq(promptRequests.requesterId, requesterId),
+          eq(promptRequests.status, "open"),
+          isNull(promptRequests.deletedAt),
+        ),
+      )
+      .returning({ id: promptRequests.id });
+
+    return result[0] ?? null;
+  }
+
+  async softDeleteOpen(requestId: string, requesterId: string) {
+    const now = new Date();
+
+    const result = await this.executor
+      .update(promptRequests)
+      .set({
+        deletedAt: now,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(promptRequests.id, requestId),
+          eq(promptRequests.requesterId, requesterId),
+          eq(promptRequests.status, "open"),
+          isNull(promptRequests.deletedAt),
+        ),
+      )
+      .returning({ id: promptRequests.id });
+
+    return result[0] ?? null;
+  }
   private buildConditions(filters: RequestFilters) {
     const conditions = [
       isNull(promptRequests.deletedAt),

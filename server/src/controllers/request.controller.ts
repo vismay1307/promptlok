@@ -5,6 +5,7 @@ import { requestService } from "../services/request.service.js";
 
 import type {
   CreateRequestInput,
+  UpdateRequestInput,
   RequestListQuery,
 } from "../validators/request.validators.js";
 
@@ -63,6 +64,55 @@ export class RequestController {
       const { id } = res.locals.validated.params as { id: string };
 
       const result = await requestService.getById(user, id);
+
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+    static update: RequestHandler = async (req, res, next) => {
+    try {
+      const user = req.user!;
+      const { id } = res.locals.validated.params as { id: string };
+      const input = res.locals.validated.body as UpdateRequestInput;
+
+      const result = await requestService.update(user, id, input);
+
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static close: RequestHandler = async (req, res, next) => {
+    try {
+      const user = req.user!;
+      const { id } = res.locals.validated.params as { id: string };
+
+      const result = await requestService.close(user, id);
+
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static remove: RequestHandler = async (req, res, next) => {
+    try {
+      const user = req.user!;
+      const { id } = res.locals.validated.params as { id: string };
+
+      const result = await requestService.softDelete(user, id);
 
       res.status(200).json({
         success: true,

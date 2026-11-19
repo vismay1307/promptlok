@@ -277,31 +277,23 @@ export class AuthorizationService {
   async assertCanEditRequest(
     user: AuthorizationUser,
     requestId: string,
+    action: "edit" | "close" | "delete" = "edit",
   ) {
-    const request =
-      await this.requestRepository.findById(requestId);
+    const request = await this.requestRepository.findById(requestId);
 
     if (!request || request.deletedAt) {
-      throw new ApiError(
-        404,
-        "NOT_FOUND",
-        "Request not found",
-      );
+      throw new ApiError(404, "NOT_FOUND", "Request not found");
     }
 
     if (!user) {
-      throw new ApiError(
-        401,
-        "UNAUTHORIZED",
-        "Unauthorized",
-      );
+      throw new ApiError(401, "UNAUTHORIZED", "Unauthorized");
     }
 
     if (user.accountStatus !== "active") {
       throw new ApiError(
         403,
         "FORBIDDEN",
-        "Your account cannot edit requests",
+        `Your account cannot ${action} requests`,
       );
     }
 
@@ -309,16 +301,18 @@ export class AuthorizationService {
       throw new ApiError(
         403,
         "FORBIDDEN",
-        "Only the requester can edit this request",
+        `Only the requester can ${action} this request`,
       );
     }
 
     if (request.status !== "open") {
-      throw new ApiError(
-        409,
-        "REQUEST_NOT_OPEN",
-        "Only open requests can be edited",
-      );
+      const message = action === "edit"
+        ? "Only open requests can be edited"
+        : action === "close"
+          ? "Only open requests can be closed"
+          : "Only open requests can be deleted";
+
+      throw new ApiError(409, "REQUEST_NOT_OPEN", message);
     }
 
     return request;

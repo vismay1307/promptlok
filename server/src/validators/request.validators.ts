@@ -38,5 +38,24 @@ export const requestListQuerySchema = z
   })
   .strict();
 
+export const updateRequestSchema = z
+  .object({
+    title: z.string().trim().min(5).max(150).optional(),
+    description: z.string().trim().min(10).max(5000).optional(),
+    context: z.string().trim().max(3000).nullable().optional(),
+    categoryId: z.uuid().optional(),
+    tagIds: z.array(z.uuid()).max(10).refine(
+      (ids) => new Set(ids).size === ids.length,
+      "Duplicate tag IDs are not allowed",
+    ).optional(),
+  })
+  .strict()
+  .refine(
+    (data) => Object.values(data).some((value) => value !== undefined),
+    "At least one field must be provided",
+  );
+
+
+export type UpdateRequestInput = z.infer<typeof updateRequestSchema>;
 export type CreateRequestInput = z.infer<typeof createRequestSchema>;
 export type RequestListQuery = z.infer<typeof requestListQuerySchema>;
